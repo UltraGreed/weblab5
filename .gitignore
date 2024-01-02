@@ -270,6 +270,7 @@ __pycache__/
 
 ### Backend gitignore
 backend/appsettings.*
+backend/db.sqlite3
 
 ### Frontend gitignore
 frontend/logs
@@ -332,3 +333,4 @@ frontend/.yarn/unplugged
 frontend/.yarn/build-state.yml
 frontend/.yarn/install-state.gz
 frontend/.pnp.*
+frontend/.vscode
