@@ -58,7 +58,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'poker.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -85,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'poker',
         'USER': 'postgres',
-        'PASSWORD': 'dbpass',
+        'PASSWORD': '123',
         'HOST': 'localhost',
         'PORT': '5432',
     }
