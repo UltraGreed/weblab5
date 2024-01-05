@@ -13,5 +13,5 @@ class UserSerializer(serializers.ModelSerializer):
 class RoomSerializer(serializers.ModelSerializer):
     class Meta:
         model = Room
-        fields = ['id', 'name', 'players']
+        fields = ['id', 'name', 'max_players', 'players']
         read_only_fields = ['id', 'players']
