@@ -11,7 +11,7 @@
 
 <style lang="sass" scoped>
 .background
-  background: url("public/remove-watermark-681901850.png")
+  background: url("public/1.jpg")
   background-size: 1920px 1080px
 </style>
 

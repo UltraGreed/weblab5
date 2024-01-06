@@ -1,1 +1,22 @@
-// app global css in SCSS form
+// app global css in SASS form
+@font-face {
+  font-family: Oswald-Bold;
+  src: url(../../public/fonts/Oswald-Bold.ttf)
+}
+
+@font-face {
+  font-family: "Oswald-Regular";
+  src: url(../../public/fonts/Oswald-Regular.ttf)
+}
+
+.oswald-bold {
+  font-family: 'Oswald-Bold'
+}
+
+.oswald-regular {
+  font-family: 'Oswald-Regular'
+}
+
+body {
+  font-family: 'Oswald-Bold'
+}
