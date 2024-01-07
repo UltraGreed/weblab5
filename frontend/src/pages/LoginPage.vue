@@ -8,6 +8,9 @@ const email = ref('');
 const password = ref('');
 const username = ref('');
 
+let myStandout = ref('');
+let usernameRef = ref(null);
+
 const isPwd = ref(true);
 
 const errors = ref<string[]>([]);
@@ -24,36 +27,36 @@ const submitForm = () => {
     return;
 
   api.post('/auth/users/', formData)
-      .then(response => {
-        api.post('/auth/jwt/create/', {
-          username: username.value,
-          password: password.value
-        })
-            .then(response1 => {
-              const data = response1.data;
-
-              const accessToken = data.access;
-              const refreshToken = data.refresh;
-
-              LocalStorage.set('accessToken', accessToken);
-              LocalStorage.set('refreshToken', refreshToken);
-              LocalStorage.set('username', username);
-
-              api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-              Router.push({path: '/rooms'});
-            })
+    .then(response => {
+      api.post('/auth/jwt/create/', {
+        username: username.value,
+        password: password.value
       })
-      .catch(error => {
-        if (error.response && error.response.data) {
-          const errorData = error.response.data;
-          for (const key in errorData) {
-            for (let i = 0; i < errorData[key].length; i++) {
-              errors.value.push(errorData[key][i]);
-            }
+        .then(response1 => {
+          const data = response1.data;
+
+          const accessToken = data.access;
+          const refreshToken = data.refresh;
+
+          LocalStorage.set('accessToken', accessToken);
+          LocalStorage.set('refreshToken', refreshToken);
+          LocalStorage.set('username', username);
+
+          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+          Router.push({path: '/rooms'});
+        })
+    })
+    .catch(error => {
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        for (const key in errorData) {
+          for (let i = 0; i < errorData[key].length; i++) {
+            errors.value.push(errorData[key][i]);
           }
         }
-      })
+      }
+    })
 }
 
 const closeBanner = () => {
@@ -81,28 +84,28 @@ const submitForm1 = () => {
     return;
 
   api.post('/auth/jwt/create/', formData)
-      .then(response => {
-        const data = response.data;
+    .then(response => {
+      const data = response.data;
 
-        const accessToken = data.access;
-        const refreshToken = data.refresh;
+      const accessToken = data.access;
+      const refreshToken = data.refresh;
 
-        LocalStorage.set('accessToken', accessToken);
-        LocalStorage.set('refreshToken', refreshToken);
-        LocalStorage.set('username', username);
+      LocalStorage.set('accessToken', accessToken);
+      LocalStorage.set('refreshToken', refreshToken);
+      LocalStorage.set('username', username);
 
-        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
-        Router.push({path: '/rooms'});
-      })
-      .catch(error => {
-        if (error.response && error.response.data) {
-          const errorData = error.response.data;
-          for (const key in errorData) {
-            errors1.value.push(errorData[key]);
-          }
+      Router.push({path: '/rooms'});
+    })
+    .catch(error => {
+      if (error.response && error.response.data) {
+        const errorData = error.response.data;
+        for (const key in errorData) {
+          errors1.value.push(errorData[key]);
         }
-      })
+      }
+    })
 }
 const closeBanner1 = () => {
   errors1.value = [];
@@ -114,8 +117,8 @@ const closeBanner1 = () => {
 <template>
   <q-page class="column justify-center items-center">
     <q-tabs
-        v-model='tab'
-        class='text-white'
+      v-model='tab'
+      class='text-white'
     >
       <q-tab class="tab" name='login' label='Login'/>
       <q-tab class="tab" name='signup' label='SignUp'/>
@@ -156,20 +159,20 @@ const closeBanner1 = () => {
               >
                 <template v-slot:append>
                   <q-icon
-                      :name="isPwd1 ? 'visibility_off' : 'visibility'"
-                      class='cursor-pointer'
-                      color="black"
-                      @click='isPwd1 = !isPwd1'
+                    :name="isPwd1 ? 'visibility_off' : 'visibility'"
+                    class='cursor-pointer'
+                    color="black"
+                    @click='isPwd1 = !isPwd1'
                   />
                 </template>
               </q-input>
             </q-card-section>
             <q-card-section>
               <q-banner
-                  v-if='errors1.length > 0'
-                  class='relative fit text-white rounded-borders q-mt-sm q-mb-md'
-                  style=' background-color: darkred'
-                  @submit.prevent='submitForm1'
+                v-if='errors1.length > 0'
+                class='relative fit text-white rounded-borders q-mt-sm q-mb-md'
+                style=' background-color: darkred'
+                @submit.prevent='submitForm1'
               >
                 <q-card-section>
               <span class="row justify-center" style="font-size: medium" v-for="err in errors1" :key="err">
@@ -179,12 +182,14 @@ const closeBanner1 = () => {
                 <q-btn round flat size='8px'
                        @click='closeBanner1'
                        class='q-mt-lg q-mr-md absolute-top-right'
-                       text-color='white'
+                       style="font-size: small"
+                       text-color='black'
                        icon='close'
                 />
               </q-banner>
               <div class='row full-width justify-center q-pt-sm q-pb-lg q-px-md'>
-                <q-btn class='col-6' style="background-color: darkred; min-height: 50px; font-size: larger" text-color="white"
+                <q-btn class='col-6' style="background-color: darkred; min-height: 50px; font-size: larger"
+                       text-color="white"
                        label='sign in'
                        type='submit'/>
               </div>
@@ -231,20 +236,20 @@ const closeBanner1 = () => {
               >
                 <template v-slot:append>
                   <q-icon
-                      :name="isPwd ? 'visibility_off' : 'visibility'"
-                      class='cursor-pointer'
-                      color="black"
-                      @click='isPwd = !isPwd'
+                    :name="isPwd ? 'visibility_off' : 'visibility'"
+                    class='cursor-pointer'
+                    color="black"
+                    @click='isPwd = !isPwd'
                   />
                 </template>
               </q-input>
             </q-card-section>
             <q-card-section>
               <q-banner
-                  v-if='errors.length > 0'
-                  class='relative fit text-white rounded-borders q-mt-sm q-mb-md'
-                  style=' background-color: darkred'
-                  @submit.prevent='submitForm'
+                v-if='errors.length > 0'
+                class='relative fit text-white rounded-borders q-mt-sm q-mb-md'
+                style=' background-color: darkred'
+                @submit.prevent='submitForm'
               >
                 <q-card-section>
               <span class="row justify-center" style="font-size: medium" v-for="err in errors" :key="err">
@@ -253,14 +258,15 @@ const closeBanner1 = () => {
                 </q-card-section>
                 <q-btn round flat size='8px'
                        @click='closeBanner'
-                       class='q-mt-md q-mr-sm absolute-top-right'
+                       class='q-mt-lg q-mr-md absolute-top-right'
                        style="font-size: small"
                        text-color='black'
                        icon='close'
                 />
               </q-banner>
               <div class='row full-width justify-center q-pt-sm q-pb-lg q-px-md'>
-                <q-btn class='col-6' style="background-color: darkred; min-height: 50px; font-size: medium" text-color="white"
+                <q-btn class='col-6' style="background-color: darkred; min-height: 50px; font-size: medium"
+                       text-color="white"
                        label='Sign up'
                        type='submit'/>
               </div>
