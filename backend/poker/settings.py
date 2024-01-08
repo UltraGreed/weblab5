@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
     'poker_app',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -75,6 +77,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'poker.wsgi.application'
+ASGI_APPLICATION = 'poker.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('redis', 6379)]
+        }
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
@@ -84,14 +97,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'poker',
         'USER': 'postgres',
-        'PASSWORD': '123',
+        'PASSWORD': 'dbpass',
         'HOST': 'localhost',
         'PORT': '5432',
-    }
+    },
 }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = 'poker_app.CustomUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -141,12 +156,12 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS = True
 
 
-#smtp
-EMAIL_USE_TLS = True
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'pockercock@gmail.com'
-EMAIL_HOST_PASSWORD = 'ckte qhiq etzp qdpc'
-EMAIL_PORT = 587
+# #smtp
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_HOST_USER = 'pockercock@gmail.com'
+# EMAIL_HOST_PASSWORD = 'ckte qhiq etzp qdpc'
+# EMAIL_PORT = 587
 
 
 SIMPLE_JWT = {
@@ -172,6 +187,6 @@ DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
     'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
     'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': True,
+    'SEND_ACTIVATION_EMAIL': False,
     'SERIALIZERS': {},
 }
