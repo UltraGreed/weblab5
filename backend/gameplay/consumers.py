@@ -11,14 +11,12 @@ def get_parameter_value(parameters, key):
 
 class GameConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        await self.accept()
         self.game_name = self.scope['url_route']['kwargs']['game_name']
         self.game_group_name = 'game_%s' % self.game_name
         self.query_string = self.scope['query_string'].decode('utf-8').split('&')
 
         await self.channel_layer.group_add(
-            self.game_group_name,
-            self.channel_name
+            self.game_group_name, self.channel_name
         )
 
         user = await get_user(get_parameter_value(self.query_string, 'user'))
@@ -27,18 +25,14 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
         players_all = await get_players(game)
 
         self.player_id = await create_player(user, game, players_all)
-
         players_in_game = await get_players(game, True)
-
         self.connect_data = {}
 
         if await init_game(game, players_in_game):
             if not game.game_in_progress:
                 game = await get_game_by_id(game.id)
                 await start_first_round(game, players_in_game)
-
             self.connect_data['start_game'] = True
-
         else:
             self.connect_data['start_game'] = False
 
@@ -47,6 +41,8 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
         self.connect_data['type'] = 'player_connected'
 
         await self.channel_layer.group_send(self.game_group_name, self.connect_data)
+
+        await self.accept()
 
     async def disconnect(self, code):
         await disconnect_player(self.player_id, self.game_name)
@@ -57,16 +53,99 @@ class GameConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.game_group_name, self.channel_name)
 
     async def receive_json(self, content, **kwargs):
-        await self.channel_layer.group_send(self.game_group_name, content)
+        action_type = content.get('type', None)
 
-    async def player_connected(self, message):
-        await self.send_json(content=message)
+        if action_type == 'raise':
+            await self.handle_raise(content)
+        elif action_type == 'call':
+            await self.handle_call(content)
+        elif action_type == 'all_in':
+            await self.handle_all_in(content)
+        elif action_type == 'bet':
+            await self.handle_bet(content)
+        elif action_type == 'check':
+            await self.handle_check(content)
+        elif action_type == 'fold':
+            await self.handle_fold(content)
 
-    async def player_disconnected(self, message):
-        await self.send_json(content=message)
+    async def handle_raise(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+        chips = int(content['value'])
 
-    async def player_action(self, message):
-        game = await get_game_by_name(self.game_name)
-        await game_helper.next_player(game)
-        message['current_player'] = await get_current_player(self.game_name)
-        await self.send_json(content=message)
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.raize(player, chips)
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'raise', 'chips': chips}
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def handle_call(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+        chips = int(content['value'])
+
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.call(player, chips)
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'call', 'chips': chips}
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def handle_all_in(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+        chips = int(content['value'])
+
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.all_in(player, chips)
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'all_in', 'chips': chips}
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def handle_bet(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+        chips = int(content['value'])
+
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.bet(player, chips)
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'bet', 'chips': chips}
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def handle_check(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.check()
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'check'}
+        await self.channel_layer.group_send(self.game_group_name, message)
+
+    async def handle_fold(self, content):
+        game_name = content['game']
+        player_id = self.player_id
+
+        player = await get_player_by_id(player_id)
+        game = await get_game_by_name(game_name)
+
+        player_helper.fold(player)
+        await game_helper.check_next_round(game_name)
+
+        message = {'type': 'player_action', 'action': 'fold'}
+        await self.channel_layer.group_send(self.game_group_name, message)

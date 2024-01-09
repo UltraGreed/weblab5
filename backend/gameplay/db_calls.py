@@ -33,6 +33,11 @@ def get_game_by_id(game_id):
 
 
 @database_sync_to_async
+def get_player_by_id(player_id):
+    return Player.objects.filter(id=player_id).first()
+
+
+@database_sync_to_async
 def create_player(user, game, players):
     players = players.order_by('in_game_order')
     player = players.filter(user=user).first()
@@ -46,10 +51,8 @@ def create_player(user, game, players):
         player.in_game_order = 1
     else:
         player.in_game_order = players.reverse()[0].in_game_order + 1
-
     game.players_connected = len(players)
     game.save()
-
     player.save()
     return player.id
 
@@ -64,7 +67,6 @@ def disconnect_player(player_id, game_name):
         player.is_in_game = False
         game.players_connected -= 1
         game.save()
-
         player.save()
     else:
         print('warn, player not found')
@@ -76,7 +78,6 @@ def init_game(game, players):
         if not game.game_initialized:
             game_helper.init_game(game, players)
             card_helper.init_cards(game)
-
             card_helper.deal_cards(game, players)
         return True
     return False

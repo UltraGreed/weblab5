@@ -13,12 +13,7 @@ class Room(models.Model):
     name = models.CharField(max_length=255)
     max_players = models.PositiveIntegerField(default=2)
     players = models.ManyToManyField(CustomUser, blank=True, related_name='rooms')
-    invitations = models.ManyToManyField(CustomUser, blank=True, related_name='room_invitations')
     is_game_started = models.BooleanField(default=False)
-
-
-class GameManager(models.Manager):
-    pass
 
 
 class Game(models.Model):
@@ -42,8 +37,6 @@ class Game(models.Model):
     game_in_progress = models.BooleanField(default=False)
     path = models.CharField(max_length=30)
     name = models.SlugField(max_length=30)
-
-    objects = GameManager()
 
 
 class Player(models.Model):
