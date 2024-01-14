@@ -11,6 +11,7 @@ urlpatterns = [
     path('auth/', include('djoser.urls')),
     path('auth/', include('djoser.urls.authtoken')),
     path('auth/', include('djoser.urls.jwt')),
+    path('room/', include('game.urls'))
 ]
 
 urlpatterns += poker_app_urls
