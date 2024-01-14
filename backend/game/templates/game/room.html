@@ -1,49 +1,58 @@
+<!-- room.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <title>Chat Room</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Room</title>
 </head>
 <body>
-    <textarea id="chat-log" cols="100" rows="20"></textarea><br>
-    <input id="chat-message-input" type="text" size="100"><br>
-    <input id="chat-message-submit" type="button" value="Send">
-    {{ room_name|json_script:"room-name" }}
+    <div id="roomContainer">
+        <h2>Poker Room</h2>
+        <div id="gameState"></div>
+        <button id="nextRoundButton">Next Round</button>
+    </div>
+
     <script>
-        const roomName = JSON.parse(document.getElementById('room-name').textContent);
+        const roomName = "{{ room_name }}";
+        const socket = new WebSocket(`ws://${window.location.host}/ws/room/${roomName}/`);
 
-        const chatSocket = new WebSocket(
-            'ws://'
-            + window.location.host
-            + '/ws/room/'
-            + roomName
-            + '/'
-        );
-
-        chatSocket.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
-        };
-
-        chatSocket.onclose = function(e) {
-            console.error('Chat socket closed unexpectedly');
-        };
-
-        document.querySelector('#chat-message-input').focus();
-        document.querySelector('#chat-message-input').onkeyup = function(e) {
-            if (e.key === 'Enter') {  // enter, return
-                document.querySelector('#chat-message-submit').click();
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            if (data.message === 'update_game') {
+                // Обработка обновленного состояния игры
+                updateGameState(data.game_state);
             }
         };
 
-        document.querySelector('#chat-message-submit').onclick = function(e) {
-            const messageInputDom = document.querySelector('#chat-message-input');
-            const message = messageInputDom.value;
-            chatSocket.send(JSON.stringify({
-                'message': message
-            }));
-            messageInputDom.value = '';
+        socket.onclose = function (event) {
+            console.error('WebSocket closed unexpectedly:', event);
         };
+
+        // Ваш код для отправки сообщений на сервер
+        function sendMessage(message) {
+            socket.send(JSON.stringify({ 'message': message }));
+        }
+
+        // Обновление состояния игры на странице
+        function updateGameState(gameState) {
+            const gameStateDiv = document.getElementById('gameState');
+            gameStateDiv.innerHTML =`
+                <p>Community Cards: ${formatCards(gameState.community_cards)}</p>
+                <p>Players:</p>
+                <ul>
+                    ${gameState.players.map(player => `<li>${player.username}: ${formatCards(player.cards)}</li>`).join('')}
+                </ul>`;
+        }
+
+        function formatCards(cards) {
+            return cards.map(card => `${card.rank} of ${card.suit}`).join(', ');
+        }
+
+        // Обработчик кнопки "Next Round"
+        document.getElementById('nextRoundButton').addEventListener('click', function () {
+            sendMessage('next_round');
+        });
     </script>
 </body>
 </html>

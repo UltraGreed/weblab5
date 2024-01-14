@@ -1,39 +1,60 @@
 import json
-
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from .poker_game import PokerGame
 
-class ChatConsumer(WebsocketConsumer):
+class PokerConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = self.scope["url_route"]["kwargs"]["room_name"]
-        self.room_group_name = f"chat_{self.room_name}"
+        self.room_group_name = f"room_{self.room_name}"
 
-        # Join room group
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
         )
 
         self.accept()
 
+        if not self.room_group_name in PokerConsumer.games:
+            PokerConsumer.games[self.room_group_name] = PokerGame([])
+
+        PokerConsumer.games[self.room_group_name].players.append({
+            'username': 'hui',
+            'cards': [],
+        })
+
+        if (len(PokerConsumer.games[self.room_group_name].players) > 1):
+            PokerConsumer.games[self.room_group_name].shuffle_deck()
+            PokerConsumer.games[self.room_group_name].give_cards()
+            PokerConsumer.games[self.room_group_name].deal_community_cards()
+
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name, {"type": "update_game"}
+        )
+
     def disconnect(self, close_code):
-        # Leave room group
         async_to_sync(self.channel_layer.group_discard)(
             self.room_group_name, self.channel_name
         )
 
-    # Receive message from WebSocket
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_group_name, {"type": "update_game"}
+        )
+
     def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
 
-        # Send message to room group
-        async_to_sync(self.channel_layer.group_send)(
-            self.room_group_name, {"type": "chat.message", "message": message}
-        )
+        if message == "next_round":
+            PokerConsumer.games[self.room_group_name].next_round()
 
-    # Receive message from room group
-    def chat_message(self, event):
-        message = event["message"]
+            async_to_sync(self.channel_layer.group_send)(
+                self.room_group_name, {"type": "update_game"}
+            )
 
-        # Send message to WebSocket
-        self.send(text_data=json.dumps({"message": message}))
+    def update_game(self, event):
+        self.send(text_data=json.dumps({
+            'message': 'update_game',
+            'game_state': PokerConsumer.games[self.room_group_name].to_dict(),
+        }))
+
+PokerConsumer.games = {}
