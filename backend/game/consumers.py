@@ -44,7 +44,7 @@ class PokerConsumer(WebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json["message"]
 
-        if message == "next_round":
+        if message == "next_round" and (len(PokerConsumer.games[self.room_group_name].players) > 1):
             PokerConsumer.games[self.room_group_name].next_round()
 
             async_to_sync(self.channel_layer.group_send)(

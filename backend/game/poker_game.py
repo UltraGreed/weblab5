@@ -19,8 +19,9 @@ class PokerGame:
     def give_cards(self):
         for _ in range(2):
             for player in self.players:
-                card = self.deck.pop()
-                player['cards'].append(card)
+                if (len(player['cards']) < 2):
+                    card = self.deck.pop()
+                    player['cards'].append(card)
 
     def clean_cards(self):
         for player in self.players:
@@ -28,21 +29,24 @@ class PokerGame:
 
     def deal_community_cards(self):
         for _ in range(3):
-            card = self.deck.pop()
-            self.community_cards.append(card)
+            if (len(self.community_cards) < 3):
+                card = self.deck.pop()
+                self.community_cards.append(card)
 
     def next_round(self):
-        if len(self.community_cards) < 5:
+        player = self.players[0]
+        if len(self.community_cards) == 0 and len(player['cards']) == 0:
+            self.give_cards()
+        elif len(self.community_cards) < 3 and len(player['cards']) != 0:
+            self.deal_community_cards()
+        elif (len(self.community_cards) < 5 and len(self.community_cards) > 2):
             card = self.deck.pop()
             self.community_cards.append(card)
-        else:
+        elif len(self.community_cards) == 5:
             self.deck = self.generate_deck()
             self.community_cards = []
             self.shuffle_deck()
-            self.give_cards()
             self.clean_cards()
-            self.give_cards()
-            self.deal_community_cards()
 
     def to_dict(self):
         return {
