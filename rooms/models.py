@@ -12,3 +12,6 @@ class Room(models.Model):
 
     starting_chips = models.IntegerField(default=1000)
     big_blind_value = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.name} | id: {self.id}'

@@ -14,7 +14,6 @@ class RoomCreate(generics.CreateAPIView):
         max_players = self.request.data.get('max_players', 2)
         room = serializer.save(max_players=max_players)
         room.players.add(self.request.user)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RoomJoin(generics.UpdateAPIView):
