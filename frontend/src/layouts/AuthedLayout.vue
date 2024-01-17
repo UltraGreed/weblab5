@@ -22,6 +22,9 @@
           <span class="text-white text-h2 q-pt-lg"> ILUHA POPICH</span>
           <span class="text-white text-h3 q-pt-lg"> SUCK MY COCK</span>
           <span class="text-white text-h4 q-pt-lg"> POSOSOV MEDA</span>
+          <q-card-section style="min-width: 90%">
+            <q-slider label v-model="telephone" :min="0" :max="100000000000"/>
+          </q-card-section>
         </q-card>
       </q-dialog>
       <router-view/>
@@ -33,6 +36,7 @@
 import {ref} from 'vue';
 
 const profile = ref(false);
+const telephone = ref('');
 </script>
 
 <style lang="sass" scoped>

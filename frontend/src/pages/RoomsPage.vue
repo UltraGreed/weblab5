@@ -82,7 +82,7 @@
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
-                     v-model="password"
+                     v-model="stack"
             ></q-input>
           </q-card-section>
           <q-btn
@@ -91,6 +91,7 @@
             size="lg"
             style=" background-color: rgba(100, 0, 0, 0.9); min-width: 150px"
             class="q-mt-md"
+            @click="createRoom"
           >
           </q-btn>
         </q-card>
@@ -101,6 +102,8 @@
 
 <script setup>
 import {ref, computed} from 'vue';
+import {LocalStorage} from "quasar";
+import {authGet} from "src/utils";
 
 const roomList = ref([
   {
@@ -194,6 +197,8 @@ const roomList = ref([
 ]);
 const addRoom = ref(false);
 
+const username = LocalStorage.getItem('username');
+const accessToken = LocalStorage.getItem('accessToken')
 
 const itemsPerPage = 7;
 const currentPage = ref(1);
@@ -203,12 +208,27 @@ const paginatedRooms = computed(() => {
   const endIndex = startIndex + itemsPerPage;
   return roomList.value.slice(startIndex, endIndex);
 });
+
 const changePage = (page) => {
   currentPage.value = page;
 }
 
 const roomName = ref('');
 const roomBet = ref(0);
+const stack = ref(0);
+
+const createRoom = () => {
+  api.post('/rooms/create/', {
+    name: roomName,
+    bet: roomBet,
+    stack: stack
+  })
+    .then(response => {
+      name = response.data.name;
+
+      const socket = new WebSocket('ws://127.0.0.1:8000/ws/' + name + '/');
+    })
+}
 
 </script>
 

@@ -28,6 +28,7 @@ const submitForm = () => {
 
   api.post('/auth/users/', formData)
     .then(response => {
+      let token = '';
       api.post('/auth/jwt/create/', {
         username: username.value,
         password: password.value
@@ -38,14 +39,21 @@ const submitForm = () => {
           const accessToken = data.access;
           const refreshToken = data.refresh;
 
+          token = accessToken;
+
           LocalStorage.set('accessToken', accessToken);
           LocalStorage.set('refreshToken', refreshToken);
-          LocalStorage.set('username', username);
+          LocalStorage.set('username', username.value);
 
           api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-          Router.push({path: '/rooms'});
         })
+
+      api.post('auth/users/activation/', {
+        uid: response.data.id,
+        token: token
+      }).then(response1 => {
+        Router.push({path: '/rooms'});
+      })
     })
     .catch(error => {
       if (error.response && error.response.data) {
@@ -92,7 +100,7 @@ const submitForm1 = () => {
 
       LocalStorage.set('accessToken', accessToken);
       LocalStorage.set('refreshToken', refreshToken);
-      LocalStorage.set('username', username);
+      LocalStorage.set('username', username1.value);
 
       api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 

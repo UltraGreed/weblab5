@@ -1,0 +1,19 @@
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import Room
+
+from .models import CustomUser
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username']
+        ref_name = 'CustomUser'
+
+
+class RoomSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Room
+        fields = ['id', 'name', 'max_players', 'players']
+        read_only_fields = ['id', 'players']
