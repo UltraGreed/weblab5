@@ -7,11 +7,9 @@ from django.core.asgi import get_asgi_application
 
 from game.routing import websocket_urlpatterns
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "poker.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "pokerscuf.settings")
 
 django_asgi_app = get_asgi_application()
-
-import game.routing
 
 application = ProtocolTypeRouter(
     {

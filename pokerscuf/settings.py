@@ -10,8 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os.path
-import sys
-from pathlib import Path
+
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -40,13 +39,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'djoser',
-    'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
-    'poker_app',
-    'game',
+    'rooms.apps.RoomsConfig',
+    'game.apps.GameConfig',
+    'users.apps.UsersConfig'
 ]
 
 MIDDLEWARE = [
@@ -60,7 +58,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
 ]
 
-ROOT_URLCONF = 'poker.urls'
+ROOT_URLCONF = 'pokerscuf.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -77,8 +75,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'poker.wsgi.application'
-ASGI_APPLICATION = "poker.asgi.application"
+WSGI_APPLICATION = 'pokerscuf.wsgi.application'
+ASGI_APPLICATION = "pokerscuf.asgi.application"
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -93,7 +92,7 @@ CHANNEL_LAYERS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'poker',
+        'NAME': 'pokerscuf',
         'USER': 'postgres',
         'PASSWORD': '123',
         'HOST': 'localhost',
@@ -104,7 +103,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
-AUTH_USER_MODEL = 'poker_app.CustomUser'
+AUTH_USER_MODEL = 'users.PokerUser'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -179,12 +178,5 @@ SIMPLE_JWT = {
     "LEEWAY": 0,
 
     "AUTH_HEADER_TYPES": ("JWT",),
-}
 
-DJOSER = {
-    'PASSWORD_RESET_CONFIRM_URL': '#/password/reset/confirm/{uid}/{token}',
-    'USERNAME_RESET_CONFIRM_URL': '#/username/reset/confirm/{uid}/{token}',
-    'ACTIVATION_URL': '#/activate/{uid}/{token}',
-    'SEND_ACTIVATION_EMAIL': False,
-    'SERIALIZERS': {},
 }
