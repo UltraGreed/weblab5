@@ -6,4 +6,4 @@ from .models import PokerUser
 class PokerUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = PokerUser
-        fields = ['id', 'username']
+        fields = ['id', 'username', 'chips']
