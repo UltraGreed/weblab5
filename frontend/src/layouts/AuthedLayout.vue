@@ -37,7 +37,7 @@ const profile = ref(false);
 
 <style lang="sass" scoped>
 .background
-  background: url("public/1.jpg")
+  background: url("/1.jpg")
   background-size: 1920px 1080px
 </style>
 
