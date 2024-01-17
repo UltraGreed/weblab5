@@ -91,7 +91,7 @@ const submitForm1 = () => {
   if (username1.value === '' || password1.value === '')
     return;
 
-  api.post('/auth/jwt/create/', formData)
+  api.post('/token/', formData)
     .then(response => {
       const data = response.data;
 
@@ -102,7 +102,7 @@ const submitForm1 = () => {
       LocalStorage.set('refreshToken', refreshToken);
       LocalStorage.set('username', username1.value);
 
-      api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      api.defaults.headers.common['Authorization'] = `JWT ${accessToken}`;
 
       Router.push({path: '/rooms'});
     })

@@ -69,20 +69,20 @@
             ></q-input>
             <q-input class="text-white  q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
-                     label="bet"
+                     label="blind"
                      label-color="black"
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
-                     v-model="roomBet"></q-input>
+                     v-model="bigBlindValue"></q-input>
             <q-input class="text-white q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
-                     label="stack"
+                     label="starting chips"
                      label-color="black"
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
-                     v-model="stack"
+                     v-model="startingChips"
             ></q-input>
           </q-card-section>
           <q-btn
@@ -103,7 +103,9 @@
 <script setup>
 import {ref, computed} from 'vue';
 import {LocalStorage} from "quasar";
-import {authGet} from "src/utils";
+import {authGet, authPost} from "src/utils";
+
+authGet('/users/me/')
 
 const roomList = ref([
   {
@@ -214,14 +216,15 @@ const changePage = (page) => {
 }
 
 const roomName = ref('');
-const roomBet = ref(0);
-const stack = ref(0);
+const bigBlindValue = ref(0);
+const startingChips = ref(0);
 
 const createRoom = () => {
-  api.post('/rooms/create/', {
+  authPost('/rooms/create/', {
     name: roomName,
-    bet: roomBet,
-    stack: stack
+    max_players: 7,
+    starting_chips: startingChips,
+    big_blind_value: bigBlindValue
   })
     .then(response => {
       name = response.data.name;

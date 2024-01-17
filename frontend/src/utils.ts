@@ -18,14 +18,13 @@ export const getNewTokens = async () => {
     console.log('Not authorized, redirecting to login page')
   }
   return await api
-    .post('/auth/jwt/refresh', {
+    .post('/token/refresh/', {
       refresh: LocalStorage.getItem('refreshToken')
     })
     .then((response) => {
       const data = response.data;
 
       LocalStorage.set('accessToken', data.access);
-      LocalStorage.set('refreshToken', data.refresh);
     })
     .catch((error) => {
       if (error.response.status === 401) {
@@ -42,7 +41,7 @@ export const authPost = async (
 ) => {
   const config = {
     headers: {
-      Authorization: 'Bearer ' + LocalStorage.getItem('accessToken'),
+      Authorization: 'JWT ' + LocalStorage.getItem('accessToken'),
       ...headers
     }
   };
@@ -58,7 +57,7 @@ export const authPost = async (
 export const authGet = async (url: string, headers: object = {}) => {
   const config = {
     headers: {
-      Authorization: 'Bearer ' + LocalStorage.getItem('accessToken'),
+      Authorization: 'JWT ' + LocalStorage.getItem('accessToken'),
       ...headers
     }
   };
