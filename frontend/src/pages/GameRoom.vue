@@ -4,19 +4,16 @@
       <img
         v-for="(card, index) in cards"
         :key="index"
-        :src="card.faceUp ? `/cards/${card.name}.png` : `/cards/back01.png`"
+        :src="`/cards/${card.name}.png`"
         class="game-card"
-        :style="{ top: `${cardPositions[index].top}%`, left: `${cardPositions[index].left}%`, transform: `rotate(${card.rotation}deg)` }"
-        @click="flipCard(index)"
+        style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
       />
       <img
         src="/cards/back01.png"
         style="width: 5%; position: absolute; left: 47.5%; top: 9%; z-index: 999; pointer-events: auto;"
         @click="dealCards"
       />
-      <q-card style="position: absolute;left: 8%; min-width: 15%; min-height: 20%;background-color: rgba(0, 0, 0, 0.6); color: white"
-
-      />
+      <q-card style="position: absolute;left: 8%; min-width: 15%; min-height: 20%;background-color: rgba(0, 0, 0, 0.6); color: white"/>
       <q-card style="position: absolute;right: 8%; min-width: 15%; min-height: 20%;background-color: rgba(0, 0, 0, 0.6); color: white"/>
       <q-card style="position: absolute;min-width: 15%; min-height: 20%; top: 40%;background-color: rgba(0, 0, 0, 0.6); color: white"/>
       <q-card style="position: absolute;min-width: 15%; min-height: 20%; top: 40%; right: 0%;background-color: rgba(0, 0, 0, 0.6); color: white"/>
@@ -40,50 +37,60 @@
   </q-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import {ref} from 'vue';
+import gsap from 'gsap';
 
-const cards = ref([]);
-const cardPositions = ref([
-  {top: 40, left: 26.5},
-  {top: 40, left: 36.5},
-  {top: 40, left: 46.5},
-  {top: 40, left: 56.5},
-  {top: 40, left: 66.5},
+interface Card {
+  name: string;
+}
+
+interface CardPosition {
+  top: number;
+  left: number;
+}
+
+const cards = ref<Card[]>([]);
+const cardPositions = ref<CardPosition[]>([
+  { top: 40, left: 26.5 },
+  { top: 40, left: 36.5 },
+  { top: 40, left: 46.5 },
+  { top: 40, left: 56.5 },
+  { top: 40, left: 66.5 },
 ]);
 
+cards.value =[
+  {name: 'card1'},
+  {name: 'card2'},
+  {name: 'card3'},
+  {name: 'card4'},
+  {name: 'card5'}
+]
 
-const dealCards = () => {
-  cards.value = [
-    { name: 'card1', rotation: 0, faceUp: false },
-    { name: 'card2', rotation: 0, faceUp: false },
-    { name: 'card3', rotation: 0, faceUp: false },
-    { name: 'card4', rotation: 0, faceUp: false },
-    { name: 'card5', rotation: 0, faceUp: false },
-  ];
+const dealCards = (): void => {
+  const tl = gsap.timeline();
 
+  // Спавн карты на колоде
   cards.value.forEach((card, index) => {
-    setTimeout(() => {
-      moveCardToPosition(index);
-    }, index * 1000);
+    gsap.set(`.game-card:nth-child(${index + 1})`, {
+       opacity: 0, // Устанавливаем начальную прозрачность
+      top: '9%',
+      left: '47.5%',
+    });
+  });
+
+  // Анимация перемещения карт на свои слоты с задержкой
+  cards.value.forEach((card, index) => {
+    tl.to(`.game-card:nth-child(${index + 1})`, {
+      duration: 0.1, // Время анимации
+      opacity:1,
+      top: `${cardPositions.value[index].top}%`,
+      left: `${cardPositions.value[index].left}%`,
+      ease: 'power2.out',
+    }, `+=0.2`); // Задержка между картами
   });
 };
 
-const moveCardToPosition = (index) => {
-
-  setTimeout(() => {
-    flipCard(index);
-  }, 1000);
-};
-
-const flipCard = (index) => {
-  cards[index].rotation = 180;
-  cards[index].faceUp = !cards[index].faceUp;
-
-  setTimeout(() => {
-    cards[index].rotation = 0;
-  }, 500);
-};
 </script>
 
 <style lang="sass" scoped>
@@ -97,13 +104,5 @@ const flipCard = (index) => {
 .game-card
   position: absolute
   width: 7%
-  transition: all 1s ease-in-out
-  transform-origin: top left
-  animation: dealAnimation 1s ease-in-out forwards
 
-@keyframes dealAnimation
-  0%
-    transform: scale(0)
-  100%
-    transform: scale(1)
 </style>
