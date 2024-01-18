@@ -19,17 +19,55 @@
       </span>
       <div v-for="(player,i) in players" :key="i">
         <q-card class="column items-center"
-          style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6); color: white"
-          :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
+                style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6); color: white"
+                :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
         >
           <span style="font-size: x-large; bottom: 23%; position:absolute;">
           {{ player.username }}
         </span>
           <span style="font-size: x-large; bottom: 3%; position:absolute;">
-          {{player.balance}}Å
+          {{ player.balance }}Å
         </span>
         </q-card>
       </div>
+    </div>
+    <div class="row justify-center q-pa-md" style="position: absolute; bottom: 2%;">
+      <q-btn
+        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+        label="CHECK" class="q-mr-md"/>
+      <q-btn
+        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+        label="FOLD" class="q-mr-md"/>
+      <q-btn
+        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+        label="RAISE" @click="show = !show"/>
+      <q-dialog v-model="show">
+        <q-card class="q-pa-md q-gutter-sm q-dark">
+          <q-card-section>
+            <div class="text-h6">Select the number of chips</div>
+          </q-card-section>
+          <q-card-section>
+            <q-btn-toggle v-model="chipValue" push style="background-color: #960018;"
+                          :options="[{label: '1/2', value: 9999/2},
+                         {label: '1/4', value: 9999/4},
+                         {label: '1/3', value: 9999/3},
+                         {label: 'All In', value: 9999},]"/>
+          </q-card-section>
+          <q-card-section>
+            <q-slider v-model="sliderValue" min="0" max="9999"/>
+          </q-card-section>
+          <q-card-section>
+            <q-input v-model="inputValue" filled type="number" label="Enter the number of chips"
+                     style="color:white; background-color: #353535"/>
+          </q-card-section>
+          <q-card-actions align="center">
+            <q-btn flat label="Submit" style="background-color: #960018;" v-close-popup/>
+            <q-btn flat label="Close" style="background-color: #960018;" v-close-popup/>
+          </q-card-actions>
+
+        </q-card>
+      </q-dialog>
+
     </div>
   </q-page>
 </template>
@@ -37,7 +75,7 @@
 <script setup lang="ts">
 import {ref} from 'vue';
 import gsap from 'gsap';
-import {LocalStorage} from "quasar";
+import {LocalStorage} from 'quasar';
 
 let username = LocalStorage.getItem('username');
 
@@ -59,6 +97,10 @@ interface Player {
 }
 
 const cards = ref<Card[]>([]);
+const show = ref<boolean>(false);
+const chipValue = ref<string>('');
+const sliderValue = ref<number>(0);
+const inputValue = ref<number>(0);
 
 const cardPositions = ref<CardPosition[][]>([
   // Table cards
@@ -71,38 +113,38 @@ const cardPositions = ref<CardPosition[][]>([
   ],
   // Player 1 cards
   [
-    {top: 76, left: 45.3},
-    {top: 76, left: 50.3},
+    {top: 76.5, left: 45.3},
+    {top: 76.5, left: 50.3},
   ],
   // Player 2 cards
   [
-    {top: 76, left: 11},
-    {top: 76, left: 16},
+    {top: 76.5, left: 11},
+    {top: 76.5, left: 16},
   ],
   // Player 3 cards
   [
-    {top: 38.5, left: 3},
-    {top: 38.5, left: 8},
+    {top: 39, left: 3},
+    {top: 39, left: 8},
   ],
   // Player 4 cards
   [
-    {top: 0, left: 11},
-    {top: 0, left: 16},
+    {top: 0.5, left: 11},
+    {top: 0.5, left: 16},
   ],
   // Player 5 cards
   [
-    {top: 0, left: 80},
-    {top: 0, left: 85},
+    {top: 0.5, left: 80},
+    {top: 0.5, left: 85},
   ],
   // Player 6 cards
   [
-    {top: 38.5, left: 88},
-    {top: 38.5, left: 93},
+    {top: 39, left: 88},
+    {top: 39, left: 93},
   ],
   // Player 7 cards
   [
-    {top: 76, left: 80},
-    {top: 76, left: 85},
+    {top: 76.5, left: 80},
+    {top: 76.5, left: 85},
   ]
 ])
 
@@ -198,8 +240,6 @@ cards.value = [
 ];
 
 const pot = ref(1000)
-
-
 
 
 let cardsDealt = false;
