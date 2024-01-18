@@ -1,5 +1,5 @@
 # POKERSCUF
-Online poker for scufs from scufs. Play poker and win Altushka's
+Online poker for scufs from scufs. Play poker and win Åltushkas
 
 ## Made with
 - [TypeScript](https://www.typescriptlang.org/)
@@ -8,7 +8,7 @@ Online poker for scufs from scufs. Play poker and win Altushka's
 - [Django](https://www.djangoproject.com/)
 
 ## Team
-* [@ultragreed](https://github.com/ultragreed) Full stack lead developer
-* [@boggruz](https://github.com/boggruz) Full stack rabotyaga
-* [@reprise77](https://github.com/reprise77) Full stack developer
+* [@ultragreed](https://github.com/ultragreed) Full stack lead bezdelnik
+* [@boggruz](https://github.com/boggruz) Frontend rabotyaga
+* [@reprise77](https://github.com/reprise77) Full stack rabotyaga
 * [@abobuus](https://github.com/abobuus) Power point hero
