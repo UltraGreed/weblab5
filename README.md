@@ -1,5 +1,5 @@
 # POKERSCUF
-Online poker
+Online poker for scufs from scufs. Play poker and win Altushka's
 
 ## Made with
 - [TypeScript](https://www.typescriptlang.org/)
