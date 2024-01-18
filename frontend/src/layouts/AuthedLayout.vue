@@ -4,7 +4,7 @@
       <q-toolbar>
         <q-toolbar-title>
           <q-btn flat padding="sm" :to="'/rooms'">
-            <span class="text-h3">POKERCOCK</span>
+            <span class="text-h3">POKERSCUF</span>
           </q-btn>
         </q-toolbar-title>
         <div class="row col-2">
