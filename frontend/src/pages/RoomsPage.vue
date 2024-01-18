@@ -28,11 +28,11 @@
         </q-item>
         <q-splitter horizontal class="bg-white q-mb-none"/>
         <div v-for="room in paginatedRooms" :key="room">
-          <q-item clickable v-ripple class="q-mt-sm">
+          <q-item clickable v-ripple class="q-mt-sm" @click="joinRoom(room.id)" :to='"/game-room/" + room.id + "/"' >
             <span class="col-4">{{ room.name }}</span>
             <span class="col-2">{{ room.blind }}</span>
-            <span class="col-5">{{ room.bank }}</span>
-            <span style="margin-left: 15px">{{ room.people }}</span>
+            <span class="col-5">{{ room.chips }}</span>
+            <span style="margin-left: 15px">{{ room.players }}</span>
           </q-item>
           <q-splitter horizontal class="bg-white"></q-splitter>
         </div>
@@ -101,107 +101,42 @@
 </template>
 
 <script setup>
-import {ref, computed} from 'vue';
+import {ref, computed, onMounted} from 'vue';
 import {LocalStorage} from "quasar";
 import {authGet, authPost} from "src/utils";
 import {api} from "boot/axios";
 
 authGet('/users/me/')
 
-const roomList = ref([
-  {
-    name: 'room1',
-    blind: '25$',
-    bank: '1000$',
-    people: '1/6'
-  },
-  {
-    name: 'room2',
-    blind: '50$',
-    bank: '2000$',
-    people: '2/6'
-  },
-  {
-    name: 'room3',
-    blind: '75$',
-    bank: '3000$',
-    people: '3/6'
-  },
-  {
-    name: 'room4',
-    blind: '100$',
-    bank: '4000$',
-    people: '4/6'
-  },
-  {
-    name: 'room5',
-    blind: '125$',
-    bank: '5000$',
-    people: '5/6'
-  }, {
-    name: 'room1',
-    blind: '25$',
-    bank: '1000$',
-    people: '1/6'
-  },
-  {
-    name: 'room2',
-    blind: '50$',
-    bank: '2000$',
-    people: '2/6'
-  },
-  {
-    name: 'room3',
-    blind: '75$',
-    bank: '3000$',
-    people: '3/6'
-  },
-  {
-    name: 'room4',
-    blind: '100$',
-    bank: '4000$',
-    people: '4/6'
-  },
-  {
-    name: 'room5',
-    blind: '125$',
-    bank: '5000$',
-    people: '5/6'
-  }, {
-    name: 'room1',
-    blind: '25$',
-    bank: '1000$',
-    people: '1/6'
-  },
-  {
-    name: 'room2',
-    blind: '50$',
-    bank: '2000$',
-    people: '2/6'
-  },
-  {
-    name: 'room3',
-    blind: '75$',
-    bank: '3000$',
-    people: '3/6'
-  },
-  {
-    name: 'room4',
-    blind: '100$',
-    bank: '4000$',
-    people: '4/6'
-  },
-  {
-    name: 'room5',
-    blind: '125$',
-    bank: '5000$',
-    people: '5/6'
-  }
-]);
+const roomList = ref([]);
 const addRoom = ref(false);
 
 const username = LocalStorage.getItem('username');
 const accessToken = LocalStorage.getItem('accessToken')
+
+onMounted(async () => {
+  await authGet('/rooms/')
+    .then(response => {
+      const roomArray = response.data;
+
+      roomArray.forEach((tuple) =>{
+        const id = tuple.id;
+        const name = tuple.name;
+        const max_players = tuple.max_players;
+        const players = tuple.players[0];
+        const chips = tuple.starting_chips;
+        const blind = tuple.big_blind_value;
+
+        roomList.value.push({
+          id: id,
+          name: name,
+          blind: blind,
+          chips: chips,
+          players: players.toString() + '/' + max_players.toString()
+        })
+      })
+    })
+})
 
 const itemsPerPage = 7;
 const currentPage = ref(1);
@@ -211,7 +146,6 @@ const paginatedRooms = computed(() => {
   const endIndex = startIndex + itemsPerPage;
   return roomList.value.slice(startIndex, endIndex);
 });
-
 const changePage = (page) => {
   currentPage.value = page;
 }
@@ -228,14 +162,14 @@ const createRoom = () => {
     big_blind_value: bigBlindValue.value
   })
     .then(response => {
-
-      const socket = new WebSocket('ws://localhost:8000/ws/room/${room_id}/');
-
-
-
+      const room_id = response.data.id;
+      const socket = new WebSocket(`ws://localhost:8000/ws/room/${room_id}/`);
     })
 }
 
+const joinRoom = (id) => {
+  const socket = new WebSocket(`ws://localhost:8000/ws/room/${id}/`)
+}
 </script>
 
 <style lang="sass" scoped>

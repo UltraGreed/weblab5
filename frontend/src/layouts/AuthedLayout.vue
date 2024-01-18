@@ -8,7 +8,7 @@
           </q-btn>
         </q-toolbar-title>
         <div class="row col-2">
-          <span class="text-h5">BALANCE: 9999$</span>
+          <span class="text-h5">BALANCE: {{ balance }}Å</span>
         </div>
         <div class="row">
           <q-btn @click="profile = true" padding="sm" flat icon="account_circle" class="text-h5"></q-btn>
@@ -19,9 +19,6 @@
       <q-dialog v-model="profile">
         <q-card style="min-width: 30%; min-height: 50%; background-color: #1D1D1D"
                 class="column items-center">
-          <span class="text-white text-h2 q-pt-lg"> ILUHA POPICH</span>
-          <span class="text-white text-h3 q-pt-lg"> SUCK MY COCK</span>
-          <span class="text-white text-h4 q-pt-lg"> POSOSOV MEDA</span>
           <q-card-section style="min-width: 90%">
             <q-slider label v-model="telephone" :min="0" :max="100000000000"/>
           </q-card-section>
@@ -34,6 +31,13 @@
 
 <script setup lang='ts'>
 import {ref} from 'vue';
+import {authGet} from "src/utils";
+
+const balance = ref(0)
+
+authGet('/users/me/').then(response => {
+  balance.value = response.data.chips;
+})
 
 const profile = ref(false);
 const telephone = ref('');

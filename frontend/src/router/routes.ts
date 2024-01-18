@@ -20,7 +20,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('pages/RoomsPage.vue'),
       },
       {
-        path: 'game-room',
+        path: 'game-room/:room_id',
         component: () => import('pages/GameRoom.vue')
       }
     ],
