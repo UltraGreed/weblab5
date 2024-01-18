@@ -1,4 +1,4 @@
-# PokerCock
+# POKERSCUF
 Online poker
 
 ## Made with
@@ -8,7 +8,7 @@ Online poker
 - [Django](https://www.djangoproject.com/)
 
 ## Team
-* [@ultragreed](https://github.com/ultragreed) Frontend lead developer
-* [@boggruz](https://github.com/boggruz) Frontend most efficient developer
-* [@reprise77](https://github.com/reprise77) Backend lead developer
-* [@abobuus](https://github.com/abobuus) Backend filler
+* [@ultragreed](https://github.com/ultragreed) Full stack lead developer
+* [@boggruz](https://github.com/boggruz) Full stack rabotyaga
+* [@reprise77](https://github.com/reprise77) Full stack developer
+* [@abobuus](https://github.com/abobuus) Power point hero
