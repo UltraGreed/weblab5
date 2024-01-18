@@ -104,6 +104,7 @@
 import {ref, computed} from 'vue';
 import {LocalStorage} from "quasar";
 import {authGet, authPost} from "src/utils";
+import {api} from "boot/axios";
 
 authGet('/users/me/')
 
@@ -221,15 +222,17 @@ const startingChips = ref(0);
 
 const createRoom = () => {
   authPost('/rooms/create/', {
-    name: roomName,
+    name: roomName.value,
     max_players: 7,
-    starting_chips: startingChips,
-    big_blind_value: bigBlindValue
+    starting_chips: startingChips.value,
+    big_blind_value: bigBlindValue.value
   })
     .then(response => {
-      name = response.data.name;
 
-      const socket = new WebSocket('ws://127.0.0.1:8000/ws/' + name + '/');
+      const socket = new WebSocket('ws://localhost:8000/ws/room/${room_id}/');
+
+
+
     })
 }
 

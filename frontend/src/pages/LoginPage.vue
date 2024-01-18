@@ -3,6 +3,7 @@ import {ref} from 'vue';
 import {api} from 'src/boot/axios';
 import {LocalStorage} from "quasar";
 import {Router} from "src/router";
+import {authPost} from "src/utils";
 
 const email = ref('');
 const password = ref('');
@@ -90,6 +91,7 @@ const submitForm1 = () => {
 
   if (username1.value === '' || password1.value === '')
     return;
+
 
   api.post('/token/', formData)
     .then(response => {
