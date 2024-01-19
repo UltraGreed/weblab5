@@ -8,12 +8,12 @@
         class="game-card"
         :style="getCardStyle(index)"
         style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
-      />
+        alt=""/>
       <img
         src="/cards/back01.png"
         style="width: 5%; position: absolute; left: 47.5%; top: 9%; z-index: 999; pointer-events: auto;"
         @click="dealCards"
-      />
+        alt=""/>
       <span style="position:absolute; left: 47%; top: 30%; font-size: x-large; color: white">
         Pot: {{ pot }}Å
       </span>
@@ -32,39 +32,58 @@
       </div>
     </div>
     <div class="row justify-center q-pa-md" style="position: absolute; bottom: 2%;">
-      <q-btn
-        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-        label="CHECK" class="q-mr-md"/>
-      <q-btn
-        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-        label="FOLD" class="q-mr-md"/>
-      <q-btn
-        style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-        label="RAISE" @click="show = !show"/>
-      <q-dialog v-model="show">
+      <div class="button-container">
+        <q-btn
+          style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
+          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+          label="CHECK" class="q-mr-md"/>
+        <q-btn
+          style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
+          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+          label="FOLD" class="q-mr-md"/>
+        <q-btn style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
+         height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);" label="RAISE"
+               @click="show.isVisible = !show.isVisible; show.balance = players[0].balance;"/>
+      </div>
+
+      <q-dialog v-model="show.isVisible">
         <q-card class="q-pa-md q-gutter-sm q-dark">
           <q-card-section>
-            <div class="text-h6">Select the number of chips</div>
+            <div class="text-h5 text-center">Select the number of chips</div>
           </q-card-section>
           <q-card-section>
-            <q-btn-toggle v-model="chipValue" push style="background-color: #960018;"
-                          :options="[{label: '1/2', value: 9999/2},
-                         {label: '1/4', value: 9999/4},
-                         {label: '1/3', value: 9999/3},
-                         {label: 'All In', value: 9999},]"/>
+            <q-btn-toggle
+              v-model="chipValue"
+              push
+              style="background-color: #960018;"
+              toggle-color="grey-9"
+              :options="[
+                  {label: 'min', value: 10},
+                  {label: '1/4', value: Math.floor(show.balance/4)},
+                  {label: '1/2', value: Math.floor(show.balance/2)},
+                  {label: '3/4', value: Math.floor(show.balance*(3/4))},
+                  {label: 'All In', value: show.balance},
+                ]"
+            />
           </q-card-section>
           <q-card-section>
-            <q-slider v-model="sliderValue" min="0" max="9999"/>
+            <q-input v-model="chipValue"
+                     label-color="white"
+                     :input-style="{color: 'white', 'padding-left': '10px'}"
+                     color="red-14"
+                     style="font-size: 20px; "
+                     maxlength="14"
+                     :rules="[val => (val <= show.balance) || 'The entered value is greater than your balance']"
+            />
           </q-card-section>
-          <q-card-section>
-            <q-input v-model="inputValue" filled type="number" label="Enter the number of chips"
-                     style="color:white; background-color: #353535"/>
+          <q-card-section class="text-h4 text-center" style="border: 1px solid white; padding: 10px; "
+                          max="10000000000000">
+            {{ chipValue }}Å
           </q-card-section>
           <q-card-actions align="center">
-            <q-btn flat label="Submit" style="background-color: #960018;" v-close-popup/>
+            <q-btn flat label="Submit" style="background-color: #960018;" @click="checkBalance" :disable="!checkBalance()" v-close-popup/>
             <q-btn flat label="Close" style="background-color: #960018;" v-close-popup/>
           </q-card-actions>
-
         </q-card>
       </q-dialog>
 
@@ -73,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue';
+import {ref, watch} from 'vue';
 import gsap from 'gsap';
 import {LocalStorage} from 'quasar';
 
@@ -97,10 +116,23 @@ interface Player {
 }
 
 const cards = ref<Card[]>([]);
-const show = ref<boolean>(false);
-const chipValue = ref<string>('');
-const sliderValue = ref<number>(0);
-const inputValue = ref<number>(0);
+const show = ref<{ isVisible: boolean, balance: number }>({isVisible: false, balance: 0});
+const chipValue = ref<number>(0);
+
+watch(chipValue, (newValue) => {
+  if (newValue.toString() === '') {
+    chipValue.value = 0;
+  } else if (newValue.toString() === '0') {
+    chipValue.value = 0;
+  } else {
+    chipValue.value = parseInt(newValue.toString(), 10);
+  }
+});
+
+const checkBalance = () => {
+  return chipValue.value <= show.value.balance;
+
+};
 
 const cardPositions = ref<CardPosition[][]>([
   // Table cards
@@ -151,7 +183,7 @@ const cardPositions = ref<CardPosition[][]>([
 const players = ref<Player[]>([
   {
     username: username.toString(),
-    balance: 9999
+    balance: 1000
   },
   {
     username: 'Vladik',
