@@ -38,10 +38,10 @@
         function updateGameState(gameState) {
             const gameStateDiv = document.getElementById('gameState');
             gameStateDiv.innerHTML =`
-                <p>Community Cards: ${formatCards(gameState.community_cards)}</p>
+                <p>Community Cards: ${formatCards(gameState._common_cards)}</p>
                 <p>Players:</p>
                 <ul>
-                    ${gameState.players.map(player => `<li>${player.username}: ${formatCards(player.cards)}</li>`).join('')}
+                    ${gameState._players.map(player => `<li>${player.username}: ${formatCards(player.cards)}</li>`).join('')}
                 </ul>`;
         }
 
