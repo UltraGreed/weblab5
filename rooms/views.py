@@ -1,5 +1,5 @@
-from rest_framework import generics, status
-from rest_framework.response import Response
+from rest_framework import generics
+
 from rest_framework.permissions import IsAuthenticated
 from .models import Room
 from .serializers import RoomSerializer
@@ -11,9 +11,7 @@ class RoomCreate(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        max_players = self.request.data.get('max_players', 2)
-        room = serializer.save(max_players=max_players)
-        room.players.add(self.request.user)
+        serializer.save()
 
 
 # class RoomJoin(generics.UpdateAPIView):
