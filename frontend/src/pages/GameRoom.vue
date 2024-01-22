@@ -22,6 +22,27 @@
         Pot: {{ pot }}Å
       </span>
       <div v-for="(player,i) in players" :key="i">
+        <div class="column items-center"
+             style="position: absolute; z-index: 1"
+             :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left-13.5}%`"
+             v-if="player.dealer_status"
+        >
+          <img src="/dealer.png" style="width: 10%">
+        </div>
+        <div class="column items-center"
+             style="position: absolute; z-index: 1"
+             :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left+3}%`"
+             v-if="player.small_blind_status"
+        >
+          <img src="/sb.png" style="width: 17%">
+        </div>
+        <div class="column items-center"
+             style="position: absolute; z-index: 1"
+             :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left+3}%`"
+             v-if="player.big_blind_status"
+        >
+          <img src="/bb.png" style="width: 17%">
+        </div>
         <q-card class="column items-center"
           style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6);
           color: white"
@@ -34,6 +55,10 @@
         <span style="font-size: x-large; bottom: 3%; position:absolute;">
           {{ player.balance }}Å
         </span>
+          <q-card class="transparent" v-if="player.is_winner"
+                  style="z-index: 1; color: gold; max-width: 100px; font-size: x-large; bottom: -20%; position: absolute;">
+            WINNER!
+          </q-card>
         </q-card>
         <q-card class="column items-center"
           style="position: absolute; min-width: 15%; min-height: 5%; background-color: rgba(0,0,0,0.6);
@@ -138,9 +163,14 @@ interface CardPosition {
 }
 
 interface Player {
+  id: number,
   username: string,
   balance: number,
   isMove: boolean
+  small_blind_status: boolean,
+  big_blind_status: boolean,
+  dealer_status: boolean,
+  is_winner: boolean
 }
 
 const cards = ref<Card[]>([]);
@@ -210,39 +240,74 @@ const cardPositions = ref<CardPosition[][]>([
 
 const players = ref<Player[]>([
   {
+    id: 1,
     username: username.toString(),
     balance: 1000,
+    small_blind_status: false,
+    big_blind_status: false,
+    dealer_status: true,
+    is_winner: false,
     isMove: true
   },
   {
+    id: 2,
     username: 'Vladik',
     balance: 9999,
-    isMove: false
+    isMove: false,
+    small_blind_status: true,
+    big_blind_status: false,
+    dealer_status: false,
+    is_winner: false
   },
   {
+    id: 3,
     username: 'Semen',
     balance: 100,
-    isMove: false
+    isMove: false,
+    small_blind_status: false,
+    big_blind_status: true,
+    dealer_status: false,
+    is_winner: false
   },
   {
+    id: 4,
     username: 'Ilia',
     balance: 228,
-    isMove: false
+    isMove: false,
+    small_blind_status: false,
+    big_blind_status: false,
+    dealer_status: false,
+    is_winner: true
   },
   {
+    id: 5,
     username: 'Jopic',
     balance: 322,
-    isMove: false
+    isMove: false,
+    small_blind_status: false,
+    big_blind_status: false,
+    dealer_status: false,
+    is_winner: false
   },
   {
+    id: 6,
     username: 'Rtomii',
     balance: 1337,
-    isMove: false
+    isMove: false,
+    small_blind_status: false,
+    big_blind_status: false,
+    dealer_status: false,
+    is_winner: false
   },
   {
+    id: 7,
     username: 'Danya',
     balance: 100000000,
-    isMove: false
+    isMove: false,
+    small_blind_status: false,
+    big_blind_status: false,
+    dealer_status: false,
+    is_winner: false
   }
 ])
 
@@ -412,4 +477,5 @@ socket.addEventListener('message', (event) => {
 .border-white
   border: 1px solid white
   box-shadow: 0 0 10px white
+
 </style>
