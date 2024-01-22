@@ -8,39 +8,61 @@
         class="game-card"
         :style="getCardStyle(index)"
         style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
-        alt=""/>
+        alt=""
+        draggable="false"
+      />
       <img
         src="/cards/back01.png"
         style="width: 5%; position: absolute; left: 47.5%; top: 9%; z-index: 999; pointer-events: auto;"
         @click="dealCards"
-        alt=""/>
+        alt=""
+        draggable="false"
+      />
       <span style="position:absolute; left: 47%; top: 30%; font-size: x-large; color: white">
         Pot: {{ pot }}Å
       </span>
       <div v-for="(player,i) in players" :key="i">
         <q-card class="column items-center"
-                style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6); color: white"
-                :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
+          style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6);
+          color: white"
+          :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
+          :class="{ 'border-white': player.isMove }"
         >
-          <span style="font-size: x-large; bottom: 23%; position:absolute;">
+        <span style="font-size: x-large; bottom: 23%; position:absolute;">
           {{ player.username }}
         </span>
-          <span style="font-size: x-large; bottom: 3%; position:absolute;">
+        <span style="font-size: x-large; bottom: 3%; position:absolute;">
           {{ player.balance }}Å
         </span>
         </q-card>
+        <q-card class="column items-center"
+          style="position: absolute; min-width: 15%; min-height: 5%; background-color: rgba(0,0,0,0.6);
+          color: white; border-top: 1px solid white;"
+          :style="`top: ${playerPositions[i].top + 24}%; left: ${playerPositions[i].left}%`"
+        >
+          <span style="font-size: x-large; bottom: 3%; position:absolute;">
+            RAISE
+          </span>
+        </q-card>
       </div>
     </div>
-    <div class="row justify-center q-pa-md" style="position: absolute; bottom: 2%;">
+    <div class="row justify-center q-pa-md" style="position: absolute; bottom: -1%;">
       <div class="button-container">
         <q-btn
-          style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
-          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-          label="CHECK" class="q-mr-md"/>
+          style="font-size: 20px;
+          background-color: #960018;
+          color: #ffffff; width: 100px;
+          height: 50px;
+          box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+          label="CHECK"
+          class="q-mr-md"/>
         <q-btn
-          style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
-          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-          label="FOLD" class="q-mr-md"/>
+          style="font-size: 20px;
+          background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+          label="FOLD"
+          class="q-mr-md"
+          @click="fold"
+        />
         <q-btn style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);" label="RAISE"
                @click="show.isVisible = !show.isVisible; show.balance = players[0].balance;"/>
@@ -81,7 +103,8 @@
             {{ chipValue }}Å
           </q-card-section>
           <q-card-actions align="center">
-            <q-btn flat label="Submit" style="background-color: #960018;" @click="checkBalance" :disable="!checkBalance()" v-close-popup/>
+            <q-btn flat label="Submit" style="background-color: #960018;" @click="checkBalance"
+                   :disable="!checkBalance()" v-close-popup/>
             <q-btn flat label="Close" style="background-color: #960018;" v-close-popup/>
           </q-card-actions>
         </q-card>
@@ -117,6 +140,7 @@ interface CardPosition {
 interface Player {
   username: string,
   balance: number,
+  isMove: boolean
 }
 
 const cards = ref<Card[]>([]);
@@ -187,31 +211,38 @@ const cardPositions = ref<CardPosition[][]>([
 const players = ref<Player[]>([
   {
     username: username.toString(),
-    balance: 1000
+    balance: 1000,
+    isMove: true
   },
   {
     username: 'Vladik',
-    balance: 9999
+    balance: 9999,
+    isMove: false
   },
   {
     username: 'Semen',
-    balance: 100
+    balance: 100,
+    isMove: false
   },
   {
     username: 'Ilia',
-    balance: 228
+    balance: 228,
+    isMove: false
   },
   {
     username: 'Jopic',
-    balance: 322
+    balance: 322,
+    isMove: false
   },
   {
     username: 'Rtomii',
-    balance: 1337
+    balance: 1337,
+    isMove: false
   },
   {
     username: 'Danya',
-    balance: 100000000
+    balance: 100000000,
+    isMove: false
   }
 ])
 
@@ -281,6 +312,7 @@ let cardsDealt = false;
 
 const cardsToDeal = 5;
 let cardsDealtCount = 0;
+const playerFolded = ref(false);
 
 const getCardStyle = (index: number) => {
   const isTableCard = index < cardsToDeal;
@@ -294,6 +326,10 @@ const getCardStyle = (index: number) => {
     zIndex: 10,
     opacity: initialOpacity,
   };
+};
+
+const fold = (): void => {
+  playerFolded.value = true;
 };
 
 const dealCards = (): void => {
@@ -352,7 +388,7 @@ const dealCards = (): void => {
 socket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
 
-  if (eventData.message === 'Nachalo igri'){
+  if (eventData.message === 'Nachalo igri') {
     dealCards();
   }
 
@@ -373,4 +409,7 @@ socket.addEventListener('message', (event) => {
   width: 7%
   z-index: 10
 
+.border-white
+  border: 1px solid white
+  box-shadow: 0 0 10px white
 </style>
