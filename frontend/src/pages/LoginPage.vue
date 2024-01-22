@@ -130,7 +130,7 @@ const closeBanner1 = () => {
       v-model='tab'
       class='text-white'
     >
-      <q-tab class="tab" name='login' label='Login'/>
+      <q-tab class="tab" name='login' label='Signin'/>
       <q-tab class="tab" name='signup' label='SignUp'/>
     </q-tabs>
     <q-tab-panels v-model='tab'

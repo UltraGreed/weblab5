@@ -31,7 +31,7 @@
         </q-card>
       </div>
     </div>
-    <div class="row justify-center q-pa-md" style="position: absolute; bottom: 2%;">
+    <div class="row justify-center q-pa-md" style="position: absolute; bottom: 0%">
       <q-btn
         style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
         label="CHECK" class="q-mr-md"/>
@@ -78,6 +78,10 @@ import gsap from 'gsap';
 import {LocalStorage} from 'quasar';
 
 let username = LocalStorage.getItem('username');
+
+const url = window.location.href;
+const arr = url.split('/')
+const socket = new WebSocket(`ws://localhost:8000/ws/room/${arr[arr.length - 2]}/`)
 
 if (username === null)
   username = '';
@@ -241,7 +245,6 @@ cards.value = [
 
 const pot = ref(1000)
 
-
 let cardsDealt = false;
 
 const cardsToDeal = 5;
@@ -313,6 +316,16 @@ const dealCards = (): void => {
     cardsDealtCount = 0;
   }
 };
+
+socket.addEventListener('message', (event) => {
+  const eventData = JSON.parse(event.data);
+
+  if (eventData.message === 'Nachalo igri'){
+    dealCards();
+  }
+
+})
+
 </script>
 
 <style lang="sass" scoped>

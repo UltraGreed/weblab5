@@ -19,8 +19,18 @@
       <q-dialog v-model="profile">
         <q-card style="min-width: 30%; min-height: 50%; background-color: #1D1D1D"
                 class="column items-center">
-          <q-card-section style="min-width: 90%">
-            <q-slider label v-model="telephone" :min="0" :max="100000000000"/>
+          <q-card-section style="color:white" class="text-h2">
+            Profile
+          </q-card-section>
+          <q-card-section style="color: white" class="text-h3">
+            username: {{ username }}
+          </q-card-section>
+          <q-card-section style="color: white" class="text-h4 column">
+            <span>Enter your phone number</span>
+            <q-slider label v-model="telephone" :min="0" :max="100000000000" class="q-mt-sm"/>
+          </q-card-section>
+          <q-card-section>
+            <q-btn label="Submit" style="color:white" size="20px"></q-btn>
           </q-card-section>
         </q-card>
       </q-dialog>
@@ -33,11 +43,14 @@
 import {ref} from 'vue';
 import {authGet} from "src/utils";
 
-const balance = ref(0)
-
+const balance = ref(0);
+const username = ref('')
+;
 authGet('/users/me/').then(response => {
   balance.value = response.data.chips;
+  username.value = response.data.username;
 })
+
 
 const profile = ref(false);
 const telephone = ref('');

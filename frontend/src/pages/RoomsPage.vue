@@ -28,7 +28,7 @@
         </q-item>
         <q-splitter horizontal class="bg-white q-mb-none"/>
         <div v-for="room in paginatedRooms" :key="room">
-          <q-item clickable v-ripple class="q-mt-sm" @click="joinRoom(room.id)" :to='"/game-room/" + room.id + "/"' >
+          <q-item clickable v-ripple class="q-mt-sm" @click="joinRoom(room.id)">
             <span class="col-4">{{ room.name }}</span>
             <span class="col-2">{{ room.blind }}</span>
             <span class="col-5">{{ room.chips }}</span>
@@ -104,9 +104,15 @@
 import {ref, computed, onMounted} from 'vue';
 import {LocalStorage} from "quasar";
 import {authGet, authPost} from "src/utils";
-import {api} from "boot/axios";
+import {Router} from "src/router";
+import {useQuasar} from "quasar";
 
-authGet('/users/me/')
+let balance = 0;
+authGet('/users/me/').then(response => {
+  balance = response.data.chips;
+})
+
+const $q = useQuasar();
 
 const roomList = ref([]);
 const addRoom = ref(false);
@@ -119,7 +125,7 @@ onMounted(async () => {
     .then(response => {
       const roomArray = response.data;
 
-      roomArray.forEach((tuple) =>{
+      roomArray.forEach((tuple) => {
         const id = tuple.id;
         const name = tuple.name;
         const max_players = tuple.max_players;
@@ -163,12 +169,43 @@ const createRoom = () => {
   })
     .then(response => {
       const room_id = response.data.id;
-      const socket = new WebSocket(`ws://localhost:8000/ws/room/${room_id}/`);
+      Router.push({path: '/game-room/' + room_id + '/'})
     })
+
+  addRoom.value = false;
 }
 
 const joinRoom = (id) => {
-  const socket = new WebSocket(`ws://localhost:8000/ws/room/${id}/`)
+  authGet('/rooms/')
+    .then(response => {
+      const roomArray = response.data;
+
+      roomArray.forEach((tuple) => {
+        if (tuple.id === id) {
+          if (tuple.player > 7) {
+            $q.notify({
+              message: 'Not enough space',
+              color: 'red-10',
+              textColor: 'white',
+              position: 'top',
+              timeout: 1000,
+            });
+            return;
+          }
+          else if (!(balance >= tuple.starting_chips)) {
+            $q.notify({
+              message: 'Not enough Altushkas',
+              color: 'red-10',
+              textColor: 'white',
+              position: 'top',
+              timeout: 1000,
+            });
+            return;
+          }
+          Router.push({path: '/game-room/' + id + '/'})
+        }
+      })
+    })
 }
 </script>
 

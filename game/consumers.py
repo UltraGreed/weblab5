@@ -20,6 +20,7 @@ class PokerConsumer(WebsocketConsumer):
 
         self.accept()
 
+
         if not self.room_group_name in PokerConsumer.games:
             PokerConsumer.games[self.room_group_name] = PokerGame([])
 
@@ -62,6 +63,5 @@ class PokerConsumer(WebsocketConsumer):
             'message': 'update_game',
             'game_state': PokerConsumer.games[self.room_group_name].to_dict(),
         }))
-
 
 PokerConsumer.games = {}
