@@ -36,20 +36,11 @@ class RoomCreate(generics.CreateAPIView):
 #         return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
 #
 #
-# class RoomDetail(generics.RetrieveDestroyAPIView):
-#     queryset = Room.objects.all()
-#     serializer_class = RoomSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def get(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         serializer = self.get_serializer(instance)
-#         return Response(serializer.data)
-#
-#     def delete(self, request, *args, **kwargs):
-#         instance = self.get_object()
-#         self.perform_destroy(instance)
-#         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class RoomDetail(generics.RetrieveAPIView):
+    queryset = Room.objects.all()
+    serializer_class = RoomSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class RoomList(generics.ListAPIView):

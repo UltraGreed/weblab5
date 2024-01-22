@@ -12,7 +12,7 @@ from users.models import PokerUser
 
 # noinspection PyArgumentList
 class PokerConsumer(WebsocketConsumer):
-    games = []
+    games = {}
 
     def __init__(self):
         super().__init__()
@@ -31,7 +31,7 @@ class PokerConsumer(WebsocketConsumer):
             return 'Not authenticated'
 
         if self.room_id in PokerConsumer.games:
-            game = PokerConsumer.games[self.room_id].check_full()
+            game = PokerConsumer.games[self.room_id]
             if game.check_full():
                 return 'Room full'
             elif game.check_started():
@@ -49,8 +49,8 @@ class PokerConsumer(WebsocketConsumer):
 
         self.game = PokerConsumer.games[self.room_id]
 
-        if not self.game.check_player(self.user['id']):
-            self.game.add_player(self.user['id'], self.user['username'])
+        if not self.game.check_player(self.user.id):
+            self.game.add_player(self.user.id, self.user.username)
 
             room = Room.objects.get(id=self.room_id)
             room.n_players += 1
@@ -61,7 +61,7 @@ class PokerConsumer(WebsocketConsumer):
                 {
                     "type": "player.joined",
                     "player_id": self.user.id,
-                    "username": self.user['username']
+                    "username": self.user.username
                 }
             )
 
@@ -75,7 +75,7 @@ class PokerConsumer(WebsocketConsumer):
             self.room_group_name, self.channel_name
         )
 
-        self.game.remove_player(self.user['id'])
+        self.game.remove_player(self.user.id)
 
         room = Room.objects.get(id=self.room_id)
         room.n_players -= 1
