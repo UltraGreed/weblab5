@@ -188,6 +188,9 @@ class PokerGame:
     def check_full(self):
         return len(self._players) >= self._max_players
 
+    def check_started(self):
+        return self._is_game_started
+
     def player_action(self, player_id, player_chips, action, raise_amount=0):
         if player_id != self._turn_player_id:
             return "Not your turn"
