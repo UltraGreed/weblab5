@@ -129,7 +129,7 @@ class PokerGame:
 
         self._send_message({
             'type': 'common.cards.dealt',
-            'players': self._players
+            'cards': self._common_cards
         })
 
         self._first_player_id = self._get_next_player(self._first_player_id)

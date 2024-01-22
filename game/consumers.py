@@ -130,7 +130,13 @@ class PokerConsumer(WebsocketConsumer):
     def cards_dealt(self, event):
         self.send(text_data=json.dumps({
             'type': 'cards_dealt',
-            'player_cards': event['players'][self.user.id]['cards']
+            'player_cards': ['_'.join(card) for card in event['players'][self.user.id]['cards']]
+        }))
+
+    def common_cards_dealt(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'common_cards_dealt',
+            'cards': ['_'.join(card) for card in event['cards']]
         }))
 
     def awaiting_turn(self, event):
