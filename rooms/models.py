@@ -8,7 +8,7 @@ class Room(models.Model):
     is_game_started = models.BooleanField(default=False)
 
     max_players = models.PositiveIntegerField(default=7)
-    players = models.ManyToManyField(PokerUser, blank=True, related_name='rooms')
+    n_players = models.IntegerField(default=0)
 
     starting_chips = models.IntegerField(default=1000)
     big_blind_value = models.IntegerField(default=0)

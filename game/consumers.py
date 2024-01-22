@@ -6,6 +6,9 @@ from channels.generic.websocket import WebsocketConsumer
 
 from .poker_game import PokerGame
 
+from rooms.models import Room
+from users.models import PokerUser
+
 
 # noinspection PyArgumentList
 class PokerConsumer(WebsocketConsumer):
@@ -20,11 +23,19 @@ class PokerConsumer(WebsocketConsumer):
 
     def connect(self):
         self.user = self.scope['user']
-        if not self.user.is_authenticated:
-            return
 
         self.room_id = self.scope["url_route"]["kwargs"]["room_id"]
         self.room_group_name = f"room_{self.room_id}"
+
+        if not self.user.is_authenticated:
+            return 'Not authenticated'
+
+        if self.room_id in PokerConsumer.games:
+            game = PokerConsumer.games[self.room_id].check_full()
+            if game.check_full():
+                return 'Room full'
+            elif game.check_started():
+                return 'Room started'
 
         async_to_sync(self.channel_layer.group_add)(
             self.room_group_name, self.channel_name
@@ -32,6 +43,7 @@ class PokerConsumer(WebsocketConsumer):
 
         if self.room_group_name not in PokerConsumer.games:
             PokerConsumer.games[self.room_id] = PokerGame(
+                self.room_id,
                 lambda data: async_to_sync(self.channel_layer.group_send)(self.room_group_name, data)
             )
 
@@ -39,6 +51,10 @@ class PokerConsumer(WebsocketConsumer):
 
         if not self.game.check_player(self.user['id']):
             self.game.add_player(self.user['id'], self.user['username'])
+
+            room = Room.objects.get(id=self.room_id)
+            room.n_players += 1
+            room.save()
 
             async_to_sync(self.channel_layer.group_send)(
                 self.room_group_name,
@@ -61,6 +77,10 @@ class PokerConsumer(WebsocketConsumer):
 
         self.game.remove_player(self.user['id'])
 
+        room = Room.objects.get(id=self.room_id)
+        room.n_players -= 1
+        room.save()
+
         async_to_sync(self.channel_layer.group_send)(
             self.room_group_name,
             {
@@ -72,9 +92,15 @@ class PokerConsumer(WebsocketConsumer):
         # TODO: room removal
 
     def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        type = text_data_json['type']
-        # TODO: receive turn answers
+        event_json = json.loads(text_data)
+        event_type = event_json['type']
+
+        if event_type == 'player_action':
+            player_id = event_json['player_id']
+            action = event_json['action']
+            player_chips = PokerUser.objects.get(id=player_id).chips
+            amount = event_json['amount']
+            self.game.player_action(player_id, player_chips, action, amount)
 
     def send_countdown(self, event):
         self.send(text_data=json.dumps({
@@ -111,5 +137,15 @@ class PokerConsumer(WebsocketConsumer):
         self.send(text_data=json.dumps({
             'type': 'awaiting_turn',
             'player_id': event['player_id'],
-            'was_raised': event['was_raised']
+            'was_raised': event['was_raised'],
+            'current_bet': event['current_bet'],
+            'bank': event['bank']
+        }))
+
+    def action_confirmed(self, event):
+        self.send(text_data=json.dumps({
+            'type': 'action_confirmed',
+            'player_id': event['player_id'],
+            'action': event['action'],
+            'amount': event['amount']
         }))

@@ -1,7 +1,6 @@
 import random
 import time
-
-from asgiref.sync import async_to_sync
+from rooms.models import Room
 
 
 def generate_deck():
@@ -15,10 +14,27 @@ default_deck = generate_deck()
 
 # noinspection PyArgumentList
 class PokerGame:
-    timer = 30
+    timer = 10
 
-    def __init__(self, send_message_func):
+    def __init__(self, room_id, send_message_func):
         self._players = {}
+        self._turn_player_id = 0
+
+        self._was_raised = False
+        self._raised_player_id = 0
+
+        self._is_game_started = False
+
+        self._room_id = room_id
+        room = Room.objects.get(id=room_id)
+        self._max_players = room.max_players
+        self._starting_chips = room.starting_chips
+        self._min_bet = room.big_blind_value
+
+        self._bank = 0
+        self._current_bet = 0
+
+        self._first_player_id = 0
 
         self._deck = default_deck.copy()
         random.shuffle(self._deck)
@@ -29,34 +45,33 @@ class PokerGame:
 
         self._send_message = send_message_func
 
-    def deal_cards(self):
-        for _ in range(2):
+        self._game_turn = []
+
+    def _deal_cards(self, amount):
+        for _ in range(amount):
             for player in self._players.values():
                 card = self._deck.pop()
                 player['cards'].append(card)
 
-    def drop_cards(self):
+    def _drop_cards(self):
         for player in self._players.values():
             player['cards'] = []
 
-    def deal_common_cards(self):
-        if self._common_cards == 0:
-            for _ in range(3):
-                card = self._deck.pop()
-                self._common_cards.append(card)
-        elif self._common_cards == 3 or self._common_cards == 4:
+    def _deal_common_cards(self, amount):
+        for _ in range(amount):
             card = self._deck.pop()
             self._common_cards.append(card)
 
-    def reset_game(self):
+    def _reset_game(self):
         self._deck = default_deck.copy()
         random.shuffle(self._deck)
 
         self._common_cards = []
 
-        self.drop_cards()
+        self._drop_cards()
+        # TODO: implement actual reset
 
-    def start_countdown(self):
+    def _start_countdown(self):
         self._countdown = PokerGame.timer
 
         self._send_message({
@@ -68,46 +83,101 @@ class PokerGame:
             time.sleep(1)
             self._countdown -= 1
 
-        self.start_game()
+        self._game_turn = self._game_turn_gen()
+        next(self._game_turn)
 
-    def start_game(self):
+    def _game_turn_gen(self):
         dealer_id = random.choice(self._players.keys())
+        self._first_player_id = dealer_id
+        self._raised_player_id = dealer_id
 
         self._send_message({
             'type': 'game.started',
             'dealer_id': dealer_id
         })
 
-        self.deal_cards()
+        self._deal_cards(2)
 
         self._send_message({
             'type': 'cards.dealt',
             'players': self._players
         })
 
+        self._turn_player_id = dealer_id
+        self._was_raised = False
+
+        self._send_next_turn()
+
+        yield
+
+        self._deal_common_cards(3)
+
         self._send_message({
-            'type': 'awaiting.turn',
-            'player_id': dealer_id,
-            'was_raised': False
+            'type': 'common.cards.dealt',
+            'players': self._players
         })
 
-        # self.deal_common_cards()
-        #
-        # for _ in range(3):
-        #     card = self._deck.pop()
-        #     self._common_cards.append(card)
-        #
-        # self.reset_game()
+        self._first_player_id = self._get_next_player(self._first_player_id)
+        self._turn_player_id = self._first_player_id
+        self._was_raised = False
+
+        self._send_next_turn()
+
+        yield
+
+        self._deal_common_cards(1)
+
+        self._send_message({
+            'type': 'common.cards.dealt',
+            'players': self._players
+        })
+
+        self._first_player_id = self._get_next_player(self._first_player_id)
+        self._turn_player_id = self._first_player_id
+        self._was_raised = False
+
+        self._send_next_turn()
+
+        yield
+
+        self._deal_common_cards(1)
+
+        self._send_message({
+            'type': 'common.cards.dealt',
+            'players': self._players
+        })
+
+        self._first_player_id = self._get_next_player(self._first_player_id)
+        self._turn_player_id = self._first_player_id
+        self._was_raised = False
+
+        self._send_next_turn()
+
+        yield
+
+        self._game_end()
+
+    def _game_end(self):
+        winner_id = self._get_winner()
+
+        self._send_message({
+            "type": 'game.end',
+            'winner_id': winner_id,
+            'bank': self._bank
+        })
+
+        # TODO: implement wa-bank and high card split
+        # TODO: restart game
 
     @property
     def countdown(self):
         return self._countdown
 
     def add_player(self, player_id, username):
-        self._players[player_id] = {'username': username, 'cards': [], 'folded': False}
+        self._players[player_id] = {'username': username, 'cards': [], 'folded': False, 'bet': 0}
 
         if len(self._players) >= 2:
-            self.start_countdown()
+            self._start_countdown()
 
     def remove_player(self, player_id):
         self._players.pop(player_id)
@@ -115,6 +185,87 @@ class PokerGame:
     def check_player(self, player_id):
         return player_id in self._players
 
-    def player_action(self, player_id, action):
-        pass
+    def check_full(self):
+        return len(self._players) >= self._max_players
+
+    def player_action(self, player_id, player_chips, action, raise_amount=0):
+        if player_id != self._turn_player_id:
+            return "Not your turn"
+        if not self._is_game_started:
+            return "Game not started yet"
+
+        player = self._players[player_id]
+
+        if (self._was_raised and action == 'call' or
+                not self._was_raised and action == 'check'):
+            bet = self._current_bet - player['bet']
+
+            if bet > player_chips:
+                return "Not enough chips"
+
+            self._bank += bet
+            player['bet'] = self._current_bet
+
+            # TODO: Substract chips
+
+        elif (self._was_raised and action == 'raise' or
+              not self._was_raised and action == 'bet'):
+            if self._current_bet + raise_amount > self._starting_chips:
+                return "Bet too high"
+            if self._min_bet > raise_amount:
+                return "Bet too low"
+
+            self._bank += raise_amount
+            self._current_bet += raise_amount
+            self._raised_player_id = self._turn_player_id
+            player['bet'] = self._current_bet
+
+            # TODO: Substract chips
+
+        elif action == 'fold':
+            player['folded'] = True
+
+        else:
+            return 'Incorrect action'
+
+        self._send_action_confirmed(action, raise_amount)
+        self._send_next_turn()
+        self._turn_player_id = self._get_next_player(self._turn_player_id)
+
+        if self._turn_player_id == self._raised_player_id:
+            if len(list(filter(lambda p: not p['folded'], self._players))) == 1:
+                self._game_end()
+                return
+
+            next(self._game_turn)
+
         # TODO: implement player action
+
+    def _send_action_confirmed(self, action, amount):
+        self._send_message({
+            'type': 'action.confirmed',
+            'player_id': self._turn_player_id,
+            'action': action,
+            'amount': amount
+        })
+
+    def _send_next_turn(self):
+        self._send_message({
+            'type': 'awaiting.turn',
+            'player_id': self._turn_player_id,
+            'was_raised': self._was_raised,
+            'current_bet': self._current_bet,
+            'bank': self._bank
+        })
+
+    def _get_next_player(self, player_id):
+        next_player_id = (player_id + 1) % len(self._players)
+        while self._players[next_player_id]['folded']:
+            next_player_id = (next_player_id + 1) % len(self._players)
+        return next_player_id
+
+    def _get_winner(self):
+        return 0
+        # TODO: determine winner from combinations
+
+
