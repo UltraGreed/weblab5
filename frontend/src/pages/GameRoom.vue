@@ -263,41 +263,7 @@ interface Player {
   isFolded: boolean
 }
 
-const players = ref<Player[]>([
-  // {
-  //   id: 2,
-  //   username: 'Vladik',
-  //   chips: 9999,
-  //   isMove: false,
-  //   smallBlindStatus: true,
-  //   bigBlindStatus: false,
-  //   dealerStatus: false,
-  //   isWinner: false,
-  //   isFolded: false
-  // },
-  // {
-  //   id: 3,
-  //   username: 'Semen',
-  //   chips: 100,
-  //   isMove: false,
-  //   smallBlindStatus: false,
-  //   bigBlindStatus: true,
-  //   dealerStatus: false,
-  //   isWinner: false,
-  //   isFolded: false
-  // },
-  // {
-  //   id: 1,
-  //   username: username.toString(),
-  //   chips: 1000,
-  //   smallBlindStatus: false,
-  //   bigBlindStatus: false,
-  //   dealerStatus: true,
-  //   isWinner: false,
-  //   isMove: true,
-  //   isFolded: false
-  // },
-])
+const players = ref<Player[]>([])
 const playerPositions = ([
   {
     top: 76,
@@ -406,6 +372,7 @@ let ourId = 0;
       ourId = response.data.id;
     })
 socket.addEventListener('message', (event) => {
+
   const eventData = JSON.parse(event.data);
 
   if (eventData.type === 'players_data') {
@@ -535,5 +502,6 @@ const timer = setInterval(() => {
 .border-white
   border: 1px solid white
   box-shadow: 0 0 10px white
+
 
 </style>
