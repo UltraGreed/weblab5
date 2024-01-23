@@ -210,7 +210,7 @@ const joinRoom = (id) => {
 
       roomArray.forEach((tuple) => {
         if (tuple.id === id) {
-          if (tuple.player > 7) {
+          if (tuple.n_players > 7) {
             $q.notify({
               message: 'Not enough space',
               color: 'red-10',

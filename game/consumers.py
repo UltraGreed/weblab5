@@ -65,6 +65,7 @@ class PokerConsumer(WebsocketConsumer):
                 }
             )
 
+
         if self.game.countdown:
             self.send_countdown(self.game.countdown)
 

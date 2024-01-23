@@ -1,20 +1,35 @@
 <template>
   <q-page class="column items-center q-pt-xl" style="overflow: hidden;">
     <div class="table-container">
-      <img
-        v-for="(card, index) in playercards"
-        :key="index"
-        :src="`/cards/${card.name}`"
-        class="game-card"
-        :style="{width: 4.5+'%'}"
-        style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
-        alt=""
-        draggable="false"
-      />
+      <div>
+        <img
+          v-for="(card, index) in playercards"
+          :key="index"
+          :src="`/cards/${card.name}`"
+          class="game-card"
+          style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
+          alt=""
+          draggable="false"
+        />
+      </div>
+      <div>
+        <img
+          v-for="(card, index) in commoncards"
+          :key="index"
+          :src="`/cards/${card.name}`"
+          class="common-card"
+          style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
+          alt=""
+          draggable="false"
+        />
+      </div>
+      <div v-if="countdown" style="position: absolute; left: 47.5%; top:43%;" class="text-white text-h1">
+        <p>{{countdown}}</p>
+      </div>
       <img
         src="/cards/back01.png"
         style="width: 5%; position: absolute; left: 47.5%; top: 9%; z-index: 999; pointer-events: auto;"
-        @click="dealPlayerCard"
+        @click="dealCommonCards"
         alt=""
         draggable="false"
       />
@@ -151,10 +166,10 @@ let username = LocalStorage.getItem('username');
 if (username === null)
   username = '';
 
+// Arrays of player and table cards
 interface Card {
   name: string;
 }
-
 const playercards = ref<Card[]>([
   {name: 'clubs_02.png'},
   {name: 'clubs_03.png'},
@@ -172,12 +187,19 @@ const playercards = ref<Card[]>([
   {name: 'back.png'},
 
 ]);
+const commoncards = ref<Card[]>([
+  {name: 'diamonds_07.png'},
+  {name: 'diamonds_07.png'},
+  {name: 'diamonds_07.png'},
+  {name: 'diamonds_07.png'},
+  {name: 'diamonds_07.png'},
+])
 
+// Arrays of positions of the cards for each player and each slot on table
 interface playerCardPosition {
   top: number;
   left: number;
 }
-
 const playerCardPositions = ref<playerCardPosition[][]>([
   // Player 1 cards
   [
@@ -215,7 +237,15 @@ const playerCardPositions = ref<playerCardPosition[][]>([
     {top: 76.5, left: 85},
   ]
 ])
+const commonCardPositions = ref<playerCardPosition[]>([
+  {top: 40, left: 26.5},
+  {top: 40, left: 36.5},
+  {top: 40, left: 46.5},
+  {top: 40, left: 56.5},
+  {top: 40, left: 66.5},
+])
 
+// Arrays of players and their positions on the table for painting them correctly
 interface Player {
   id: number,
   username: string,
@@ -227,7 +257,6 @@ interface Player {
   is_winner: boolean,
   isFolded: boolean
 }
-
 const players = ref<Player[]>([
   {
     id: 1,
@@ -347,6 +376,7 @@ authGet(`/rooms/detail/${arr[arr.length - 2]}/`)
   })
 const socket = new WebSocket(`ws://localhost:8000/ws/room/${arr[arr.length - 2]}/?token=${LocalStorage.getItem('accessToken')}`)
 
+// -------------------------------------------------------------------------------------------- //
 const show = ref<{ isVisible: boolean, balance: number }>({isVisible: false, balance: 0});
 const chipValue = ref<number>(0);
 
@@ -394,6 +424,9 @@ const pot = ref(1000)
 // };
 
 
+const countdown = ref(30);
+// -------------------------------------------------------------------------------------------- //
+
 const dealPlayerCard = () => {
   const tl = gsap.timeline();
   playercards.value.forEach((card, index) => {
@@ -414,15 +447,50 @@ const dealPlayerCard = () => {
     }, '+=0.2');
   })
 }
+const dealCommonCards = () => {
+  const tl = gsap.timeline();
+  commoncards.value.forEach((card, index) => {
+    const positionGroup = commonCardPositions.value[index];
+    gsap.set(`.common-card:nth-child(${index + 1})`, {
+      opacity: 0,
+      top: '9%',
+      left: '47.5%',
+    });
+    tl.to(`.common-card:nth-child(${index + 1})`, {
+      duration: 0.1,
+      opacity: 1,
+      top: `${positionGroup.top}%`,
+      left: `${positionGroup.left}%`,
+      size: 2,
+      ease: 'power2.out',
+    }, '+=0.2');
+  })
+}
 
 socket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
-
   const message = eventData.message;
 
-  if (message.type === 'cards_dealt') {
+  if (eventData.type === 'player_names') {
+    players.value = [];
+    const inputPlayers = eventData.players;
+    inputPlayers.forEach((player: any) => {
+      players.value.push({
+        id: player.id,
+        username: player.username,
+        balance: player.balance,
+        isMove: false,
+        big_blind_status: false,
+        small_blind_status: false,
+        dealer_status: false,
+        is_winner: false
+      })
+    })
+  }
+
+  if (eventData.type === 'cards_dealt') {
     playercards.value = [];
-    const inputCards = message.player_cards;
+    const inputCards = eventData.player_cards;
     inputCards.forEach((card: any) => {
       playercards.value.push({name: card + '.png'});
     })
@@ -432,7 +500,27 @@ socket.addEventListener('message', (event) => {
     dealPlayerCard();
   }
 
+  if (eventData.type === 'common_cards_dealt') {
+    commoncards.value = [];
+    const inputCards = eventData.cards;
+    inputCards.forEach((card: any) => {
+      commoncards.value.push({name: card + '.png'})
+    })
+    dealCommonCards();
+  }
+
+  if (eventData.type === 'countdown') {
+    countdown.value = eventData.countdown;
+  }
 })
+
+const timer = setInterval(() => {
+  if (countdown.value > 0) {
+    countdown.value -= 1;
+  } else {
+    clearInterval(timer);
+  }
+}, 1000);
 
 </script>
 
@@ -445,6 +533,11 @@ socket.addEventListener('message', (event) => {
   min-height: 720px
 
 .game-card
+  position: absolute
+  width: 4.5%
+  z-index: 10
+
+.common-card
   position: absolute
   width: 7%
   z-index: 10

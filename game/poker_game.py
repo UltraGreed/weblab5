@@ -270,5 +270,3 @@ class PokerGame:
     def _get_winner(self):
         return 0
         # TODO: determine winner from combinations
-
-
