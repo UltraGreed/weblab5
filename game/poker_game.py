@@ -181,11 +181,15 @@ class PokerGame:
     def starting_chips(self):
         return self._starting_chips
 
+    @property
+    def players(self):
+        return self._players
+
     def add_player(self, player_id, username, chips):
         self._players[player_id] = {'username': username, 'cards': [], 'folded': False, 'bet': 0, 'chips': chips}
 
-        if len(self._players) >= 2:
-            self._start_countdown()
+        # if len(self._players) >= 2:
+        #     self._start_countdown()
 
     def remove_player(self, player_id):
         self._players.pop(player_id)

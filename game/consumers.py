@@ -66,12 +66,12 @@ class PokerConsumer(WebsocketConsumer):
                 }
             )
 
-        self.send_players_data()
 
         if self.game.countdown:
             self.send_countdown(self.game.countdown)
 
         self.accept()
+        self.send_players_data()
 
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
@@ -117,7 +117,7 @@ class PokerConsumer(WebsocketConsumer):
             'type': 'players_data',
             'players': [
                 {'player_id': p_id, 'username': p['username'], 'chips': p['chips']}
-                for p_id, p in self.game.players.items]
+                for p_id, p in self.game.players.items()]
         }))
 
     def player_joined(self, event):

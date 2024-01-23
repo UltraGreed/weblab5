@@ -24,7 +24,7 @@
         />
       </div>
       <div v-if="countdown" style="position: absolute; left: 47.5%; top:43%;" class="text-white text-h1">
-        <p>{{countdown}}</p>
+        <p>{{ countdown }}</p>
       </div>
       <img
         src="/cards/back01.png"
@@ -40,26 +40,27 @@
                    padding: 0 50px 0 50px">
         {{ pot }}
       </span>
-      <q-img src="/public/chips2.png" style="height: 45px; width: 45px; left: 35.5vw; top: 21.3vh" draggable="false"></q-img>
+      <q-img src="/public/chips2.png" style="height: 45px; width: 45px; left: 35.5vw; top: 21.3vh"
+             draggable="false"></q-img>
       <div v-for="(player,i) in players" :key="i">
         <div class="column items-center"
              style="position: absolute; z-index: 1"
              :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left-13.5}%`"
-             v-if="player.dealer_status"
+             v-if="player.dealerStatus"
         >
           <img src="/dealer.png" style="width: 10%">
         </div>
         <div class="column items-center"
              style="position: absolute; z-index: 1"
              :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left+3}%`"
-             v-if="player.small_blind_status"
+             v-if="player.smallBlindStatus"
         >
           <img src="/sb.png" style="width: 17%">
         </div>
         <div class="column items-center"
              style="position: absolute; z-index: 1"
              :style="`top: ${playerPositions[i].top + 15}%; left: ${playerPositions[i].left+3}%`"
-             v-if="player.big_blind_status"
+             v-if="player.bigBlindStatus"
         >
           <img src="/bb.png" style="width: 17%">
         </div>
@@ -73,9 +74,9 @@
           {{ player.username }}
         </span>
           <span style="font-size: x-large; bottom: 3%; position:absolute;">
-          {{ player.balance }}Å
+          {{ player.chips }}Å
         </span>
-          <q-card class="transparent" v-if="player.is_winner"
+          <q-card class="transparent" v-if="player.isWinner"
                   style="z-index: 1; color: gold; max-width: 100px; font-size: x-large; bottom: -40%; position: absolute;">
             WINNER!
           </q-card>
@@ -108,7 +109,7 @@
         />
         <q-btn style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);" label="RAISE"
-               @click="show.isVisible = !show.isVisible; show.balance = players[0].balance;"/>
+               @click="show.isVisible = !show.isVisible; show.balance = players[0].chips;"/>
       </div>
 
       <q-dialog v-model="show.isVisible">
@@ -172,6 +173,7 @@ if (username === null)
 interface Card {
   name: string;
 }
+
 const playercards = ref<Card[]>([
   {name: 'clubs_02.png'},
   {name: 'clubs_03.png'},
@@ -202,6 +204,7 @@ interface playerCardPosition {
   top: number;
   left: number;
 }
+
 const playerCardPositions = ref<playerCardPosition[][]>([
   // Player 1 cards
   [
@@ -251,92 +254,49 @@ const commonCardPositions = ref<playerCardPosition[]>([
 interface Player {
   id: number,
   username: string,
-  balance: number,
+  chips: number,
   isMove: boolean
-  small_blind_status: boolean,
-  big_blind_status: boolean,
-  dealer_status: boolean,
-  is_winner: boolean,
+  smallBlindStatus: boolean,
+  bigBlindStatus: boolean,
+  dealerStatus: boolean,
+  isWinner: boolean,
   isFolded: boolean
 }
+
 const players = ref<Player[]>([
-  {
-    id: 1,
-    username: username.toString(),
-    balance: 1000,
-    small_blind_status: false,
-    big_blind_status: false,
-    dealer_status: true,
-    is_winner: false,
-    isMove: true,
-    isFolded: false
-  },
-  {
-    id: 2,
-    username: 'Vladik',
-    balance: 9999,
-    isMove: false,
-    small_blind_status: true,
-    big_blind_status: false,
-    dealer_status: false,
-    is_winner: false,
-    isFolded: false
-  },
-  {
-    id: 3,
-    username: 'Semen',
-    balance: 100,
-    isMove: false,
-    small_blind_status: false,
-    big_blind_status: true,
-    dealer_status: false,
-    is_winner: false,
-    isFolded: false
-  },
-  {
-    id: 4,
-    username: 'Ilia',
-    balance: 228,
-    isMove: false,
-    small_blind_status: false,
-    big_blind_status: false,
-    dealer_status: false,
-    is_winner: true,
-    isFolded: false
-  },
-  {
-    id: 5,
-    username: 'Jopic',
-    balance: 322,
-    isMove: false,
-    small_blind_status: false,
-    big_blind_status: false,
-    dealer_status: false,
-    is_winner: false,
-    isFolded: false
-  },
-  {
-    id: 6,
-    username: 'Rtomii',
-    balance: 1337,
-    isMove: false,
-    small_blind_status: false,
-    big_blind_status: false,
-    dealer_status: false,
-    is_winner: false,
-    isFolded: false
-  },
-  {
-    id: 7,
-    username: 'Danya',
-    balance: 100000000,
-    isMove: false,
-    small_blind_status: false,
-    big_blind_status: false,
-    dealer_status: false,
-    is_winner: false,
-    isFolded: false
-  }
+  // {
+  //   id: 2,
+  //   username: 'Vladik',
+  //   chips: 9999,
+  //   isMove: false,
+  //   smallBlindStatus: true,
+  //   bigBlindStatus: false,
+  //   dealerStatus: false,
+  //   isWinner: false,
+  //   isFolded: false
+  // },
+  // {
+  //   id: 3,
+  //   username: 'Semen',
+  //   chips: 100,
+  //   isMove: false,
+  //   smallBlindStatus: false,
+  //   bigBlindStatus: true,
+  //   dealerStatus: false,
+  //   isWinner: false,
+  //   isFolded: false
+  // },
+  // {
+  //   id: 1,
+  //   username: username.toString(),
+  //   chips: 1000,
+  //   smallBlindStatus: false,
+  //   bigBlindStatus: false,
+  //   dealerStatus: true,
+  //   isWinner: false,
+  //   isMove: true,
+  //   isFolded: false
+  // },
 ])
 const playerPositions = ([
   {
@@ -397,7 +357,7 @@ const checkBalance = () => {
 };
 
 const pot = ref(1000)
-const countdown = ref(30);
+const countdown = ref(0);
 // -------------------------------------------------------------------------------------------- //
 
 const dealPlayerCard = () => {
@@ -440,26 +400,45 @@ const dealCommonCards = () => {
   })
 }
 
+let ourId = 0;
+  authGet('/users/me/')
+    .then(response => {
+      ourId = response.data.id;
+    })
 socket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
-  const message = eventData.message;
 
-  if (eventData.type === 'player_names') {
+  if (eventData.type === 'players_data') {
     players.value = [];
     const inputPlayers = eventData.players;
     inputPlayers.forEach((player: any) => {
       players.value.push({
-        id: player.id,
+        id: player.player_id,
         username: player.username,
-        balance: player.balance,
+        chips: player.chips,
         isMove: false,
-        big_blind_status: false,
-        small_blind_status: false,
-        dealer_status: false,
-        is_winner: false,
+        bigBlindStatus: false,
+        smallBlindStatus: false,
+        dealerStatus: false,
+        isWinner: false,
         isFolded: false
       })
     })
+
+    let ourIndex = players.value.findIndex((p: any) => (p.id === ourId)) || 0;
+
+    const playerCopy = ref<Player[]>([]);
+    players.value.forEach((player: any, index: any) => {
+      if (index >= ourIndex) {
+        playerCopy.value.push(player);
+      }
+    })
+    players.value.forEach((player: any, index: any) => {
+      if (index < ourIndex) {
+        playerCopy.value.push(player);
+      }
+    })
+    players.value = playerCopy.value;
   }
 
   if (eventData.type === 'cards_dealt') {
@@ -486,6 +465,43 @@ socket.addEventListener('message', (event) => {
   if (eventData.type === 'countdown') {
     countdown.value = eventData.countdown;
   }
+
+  if (eventData.type === 'player_left') {
+    const playerIdLeft = eventData.player_id;
+    players.value = players.value.filter((player: any) => player.id !== playerIdLeft);
+  }
+
+  if (eventData.type === 'player_joined') {
+    if (eventData.player_id !== ourId) {
+      players.value.push({
+        id: eventData.player_id,
+        username: eventData.username,
+        chips: eventData.chips,
+        isMove: false,
+        bigBlindStatus: false,
+        smallBlindStatus: false,
+        dealerStatus: false,
+        isWinner: false,
+        isFolded: false
+      })
+    }
+  }
+
+  if (eventData.type === 'game_started') {
+    const dealerId = eventData.dealer_id;
+
+    let ind = 0;
+    players.value.forEach((player: any, index: any) => {
+      if (player.id === dealerId) {
+        player.dealerStatus = true;
+        ind = index;
+      }
+    })
+    players.value[(ind + 1) % 7].smallBlindStatus = true;
+    players.value[(ind + 2) % 7].bigBlindStatus = true;
+    players.value[(ind + 3) % 7].isMove = true;
+  }
+
 })
 
 const timer = setInterval(() => {
