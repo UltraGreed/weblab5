@@ -58,15 +58,16 @@
              style="position: absolute; bottom: 15px; left:5%; background-color: rgba(100, 0, 0, 0.9)"
       >
       </q-btn>
-      <q-dialog v-model="addRoom">
-        <q-card style="min-width: 30%; min-height: 50%; background-color: rgba(36, 36 , 36 , 0.99)"
-                class="column items-center">
+      <q-dialog v-model="addRoom" >
+        <q-card style="min-width: 23%; min-height: 47%"
+                class="column items-center q-dark"
+        >
           <q-card-section class="text-white text-h3 q-mt-lg">ROOM SETTINGS</q-card-section>
           <q-card-section class="column q-pt-none justify-start" style="min-width: 300px">
             <q-input class="text-white q-mt-lg rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large; "
                      label="Name"
-                     label-color="black"
+                     label-color="white"
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
@@ -75,7 +76,7 @@
             <q-input class="text-white  q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
                      label="Big blind"
-                     label-color="black"
+                     label-color="white"
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
@@ -84,7 +85,7 @@
             <q-input class="text-white q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
                      label="Starting chips"
-                     label-color="black"
+                     label-color="white"
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined

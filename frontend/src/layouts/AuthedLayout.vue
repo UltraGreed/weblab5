@@ -26,16 +26,23 @@
             Profile
           </q-card-section>
           <q-card-section style="color: white" class="text-h3">
-            username: {{ username }}
+            Username: {{ username }}
           </q-card-section>
           <q-card-section style="color: white" class="text-h4 column">
             <span>Enter your phone number</span>
             <div>
-              <p>Your number: +{{ currentNumber }}</p>
-              <q-btn @click="lowerHalf" style="color:white;
-                     background-color: #960018; margin-right: 10px" size="20px" >LESS</q-btn>
-              <q-btn @click="upperHalf" style="color:white;
-                     background-color: #960018" size="20px">MORE</q-btn>
+              <p class="">Your number: +{{ currentNumber }}</p>
+              <div class="row justify-center">
+                <q-btn @click="lowerHalf" style="color:white;
+                     background-color: #960018; margin-right: 10px" size="20px">LESS
+                </q-btn>
+                <q-btn @click="upperHalf" style="color:white;
+                     background-color: #960018" size="20px">MORE
+                </q-btn>
+                <q-btn @click="resetNumber" style="color:white;
+                     background-color: #960018; margin-left: 10px" size="20px">RESET
+                </q-btn>
+              </div>
             </div>
           </q-card-section>
           <q-card-section>
@@ -85,6 +92,11 @@ const upperHalf = () => {
   currentNumber.value = Math.ceil((min.value + max.value) / 2);
 };
 
+const resetNumber = () => {
+  min.value = 0;
+  max.value = 99999999999;
+  currentNumber.value = (min.value + max.value) / 2;
+};
 </script>
 
 <style lang="sass" scoped>

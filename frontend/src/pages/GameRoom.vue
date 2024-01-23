@@ -424,7 +424,7 @@ const checkBalance = () => {
   return chipValue.value <= show.value.balance && chipValue.value >= currentAmount.value + bigBlindValue.value;
 };
 
-const pot = ref(1000)
+const pot = ref(0)
 const countdown = ref(30);
 // -------------------------------------------------------------------------------------------- //
 
