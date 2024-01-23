@@ -129,7 +129,7 @@ onMounted(async () => {
         const id = tuple.id;
         const name = tuple.name;
         const max_players = tuple.max_players;
-        const players = tuple.players[0];
+        const players = tuple.n_players;
         const chips = tuple.starting_chips;
         const blind = tuple.big_blind_value;
 

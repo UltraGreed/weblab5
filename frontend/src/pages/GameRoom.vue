@@ -2,11 +2,11 @@
   <q-page class="column items-center justify-center">
     <div class="table-container">
       <img
-        v-for="(card, index) in cards"
+        v-for="(card, index) in playercards"
         :key="index"
-        :src="`/cards/${card.name}.png`"
+        :src="`/cards/${card.name}`"
         class="game-card"
-        :style="getCardStyle(index)"
+        :style="{width: 4.5+'%'}"
         style="position: absolute; left: 47.5%; top: 9%; opacity: 0"
         alt=""
         draggable="false"
@@ -14,7 +14,7 @@
       <img
         src="/cards/back01.png"
         style="width: 5%; position: absolute; left: 47.5%; top: 9%; z-index: 999; pointer-events: auto;"
-        @click="dealCards"
+        @click="dealPlayerCard"
         alt=""
         draggable="false"
       />
@@ -44,26 +44,26 @@
           <img src="/bb.png" style="width: 17%">
         </div>
         <q-card class="column items-center"
-          style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6);
+                style="position: absolute; min-width: 15%; min-height: 24%; background-color: rgba(0,0,0,0.6);
           color: white"
-          :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
-          :class="{ 'border-white': player.isMove }"
+                :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
+                :class="{ 'border-white': player.isMove }"
         >
         <span style="font-size: x-large; bottom: 23%; position:absolute;">
           {{ player.username }}
         </span>
-        <span style="font-size: x-large; bottom: 3%; position:absolute;">
+          <span style="font-size: x-large; bottom: 3%; position:absolute;">
           {{ player.balance }}Å
         </span>
           <q-card class="transparent" v-if="player.is_winner"
-                  style="z-index: 1; color: gold; max-width: 100px; font-size: x-large; bottom: -20%; position: absolute;">
+                  style="z-index: 1; color: gold; max-width: 100px; font-size: x-large; bottom: -40%; position: absolute;">
             WINNER!
           </q-card>
         </q-card>
         <q-card class="column items-center"
-          style="position: absolute; min-width: 15%; min-height: 5%; background-color: rgba(0,0,0,0.6);
+                style="position: absolute; min-width: 15%; min-height: 5%; background-color: rgba(0,0,0,0.6);
           color: white; border-top: 1px solid white;"
-          :style="`top: ${playerPositions[i].top + 24}%; left: ${playerPositions[i].left}%`"
+                :style="`top: ${playerPositions[i].top + 24}%; left: ${playerPositions[i].left}%`"
         >
           <span style="font-size: x-large; bottom: 3%; position:absolute;">
             RAISE
@@ -134,8 +134,8 @@
           </q-card-actions>
         </q-card>
       </q-dialog>
-
     </div>
+    <q-btn @click="dealPlayerCard">3123</q-btn>
   </q-page>
 </template>
 
@@ -143,13 +143,9 @@
 import {ref, watch} from 'vue';
 import gsap from 'gsap';
 import {LocalStorage} from 'quasar';
+import {authGet} from "src/utils";
 
 let username = LocalStorage.getItem('username');
-
-const url = window.location.href;
-const arr = url.split('/')
-const socket = new WebSocket(`ws://localhost:8000/ws/room/${arr[arr.length - 2]}/`)
-
 if (username === null)
   username = '';
 
@@ -157,50 +153,30 @@ interface Card {
   name: string;
 }
 
-interface CardPosition {
+const playercards = ref<Card[]>([
+  {name: 'clubs_02.png'},
+  {name: 'clubs_03.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+  {name: 'back.png'},
+
+]);
+
+interface playerCardPosition {
   top: number;
   left: number;
 }
 
-interface Player {
-  id: number,
-  username: string,
-  balance: number,
-  isMove: boolean
-  small_blind_status: boolean,
-  big_blind_status: boolean,
-  dealer_status: boolean,
-  is_winner: boolean
-}
-
-const cards = ref<Card[]>([]);
-const show = ref<{ isVisible: boolean, balance: number }>({isVisible: false, balance: 0});
-const chipValue = ref<number>(0);
-
-watch(chipValue, (newValue) => {
-  if (newValue.toString() === '') {
-    chipValue.value = 0;
-  } else if (newValue.toString() === '0') {
-    chipValue.value = 0;
-  } else {
-    chipValue.value = parseInt(newValue.toString(), 10);
-  }
-});
-
-const checkBalance = () => {
-  return chipValue.value <= show.value.balance;
-
-};
-
-const cardPositions = ref<CardPosition[][]>([
-  // Table cards
-  [
-    {top: 40, left: 26.5},
-    {top: 40, left: 36.5},
-    {top: 40, left: 46.5},
-    {top: 40, left: 56.5},
-    {top: 40, left: 66.5},
-  ],
+const playerCardPositions = ref<playerCardPosition[][]>([
   // Player 1 cards
   [
     {top: 76.5, left: 45.3},
@@ -237,6 +213,17 @@ const cardPositions = ref<CardPosition[][]>([
     {top: 76.5, left: 85},
   ]
 ])
+
+interface Player {
+  id: number,
+  username: string,
+  balance: number,
+  isMove: boolean
+  small_blind_status: boolean,
+  big_blind_status: boolean,
+  dealer_status: boolean,
+  is_winner: boolean
+}
 
 const players = ref<Player[]>([
   {
@@ -310,7 +297,6 @@ const players = ref<Player[]>([
     is_winner: false
   }
 ])
-
 const playerPositions = ([
   {
     top: 76,
@@ -341,120 +327,77 @@ const playerPositions = ([
     left: 77
   }
 ])
+let countOfPlayer = 0;
 
-cards.value = [
-  {name: 'hearts_ace'},
-  {name: 'hearts_king'},
-  {name: 'hearts_queen'},
-  {name: 'hearts_jack'},
-  {name: 'hearts_10'},
+const url = window.location.href;
+const arr = url.split('/')
+authGet(`/rooms/detail/${arr[arr.length - 2]}/`)
+  .then(response => {
+    countOfPlayer = response.data.n_players;
+  })
+const socket = new WebSocket(`ws://localhost:8000/ws/room/${arr[arr.length - 2]}/?token=${LocalStorage.getItem('accessToken')}`)
 
-  {name: 'hearts_09'},
-  {name: 'hearts_08'},
+const show = ref<{ isVisible: boolean, balance: number }>({isVisible: false, balance: 0});
+const chipValue = ref<number>(0);
 
-  {name: 'back'},
-  {name: 'back'},
+watch(chipValue, (newValue) => {
+  if (newValue.toString() === '') {
+    chipValue.value = 0;
+  } else if (newValue.toString() === '0') {
+    chipValue.value = 0;
+  } else {
+    chipValue.value = parseInt(newValue.toString(), 10);
+  }
+});
 
-  {name: 'back'},
-  {name: 'back'},
-
-  {name: 'back'},
-  {name: 'back'},
-
-  {name: 'back'},
-  {name: 'back'},
-
-  {name: 'back'},
-  {name: 'back'},
-
-  {name: 'back'},
-  {name: 'back'},
-];
+const checkBalance = () => {
+  return chipValue.value <= show.value.balance;
+};
 
 const pot = ref(1000)
 
-let cardsDealt = false;
-
-const cardsToDeal = 5;
-let cardsDealtCount = 0;
 const playerFolded = ref(false);
-
-const getCardStyle = (index: number) => {
-  const isTableCard = index < cardsToDeal;
-
-  const size = isTableCard ? '7%' : '4.5%';
-  const initialOpacity = cardsDealt ? 1 : 0;
-
-  return {
-    position: 'absolute',
-    width: size,
-    zIndex: 10,
-    opacity: initialOpacity,
-  };
-};
 
 const fold = (): void => {
   playerFolded.value = true;
 };
 
-const dealCards = (): void => {
+const dealPlayerCard = () => {
   const tl = gsap.timeline();
-
-  if (!cardsDealt) {
-    cards.value.forEach((card, index) => {
-      if (index < cardsToDeal) {
-        const positionGroup = cardPositions.value[0];
-        gsap.set(`.game-card:nth-child(${index + 1})`, {
-          opacity: 0,
-          top: '9%',
-          left: '47.5%',
-        });
-
-        tl.to(`.game-card:nth-child(${index + 1})`, {
-          duration: 0.1,
-          opacity: 1,
-          top: `${positionGroup[index].top}%`,
-          left: `${positionGroup[index].left}%`,
-          ease: 'power2.out',
-        }, '+=0.2');
-        cardsDealtCount++;
-      }
+  playercards.value.forEach((card, index) => {
+    const playerIndex = Math.floor((index) / 2);
+    const positionGroup = playerCardPositions.value[playerIndex];
+    gsap.set(`.game-card:nth-child(${index + 1})`, {
+      opacity: 0,
+      top: '9%',
+      left: '47.5%',
     });
-
-    if (cardsDealtCount === cardsToDeal) {
-      cardsDealt = true;
-    }
-  } else {
-    cards.value.forEach((card, index) => {
-      if (index >= cardsToDeal) {
-        const playerIndex = Math.floor((index - cardsToDeal) / 2) + 1;
-        const positionGroup = cardPositions.value[playerIndex];
-        gsap.set(`.game-card:nth-child(${index + 1})`, {
-          opacity: 0,
-          top: '9%',
-          left: '47.5%',
-        });
-
-        tl.to(`.game-card:nth-child(${index + 1})`, {
-          duration: 0.1,
-          opacity: 1,
-          top: `${positionGroup[(index - cardsToDeal) % 2].top}%`,
-          left: `${positionGroup[(index - cardsToDeal) % 2].left}%`,
-          ease: 'power2.out',
-        }, '+=0.2');
-        cardsDealtCount++;
-      }
-    });
-    cardsDealt = false;
-    cardsDealtCount = 0;
-  }
-};
+    tl.to(`.game-card:nth-child(${index + 1})`, {
+      duration: 0.1,
+      opacity: 1,
+      top: `${positionGroup[(index) % 2].top}%`,
+      left: `${positionGroup[(index) % 2].left}%`,
+      size: 2,
+      ease: 'power2.out',
+    }, '+=0.2');
+  })
+}
 
 socket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
 
-  if (eventData.message === 'Nachalo igri') {
-    dealCards();
+  const message = eventData.message;
+
+  if (message.type === 'cards_dealt') {
+    playercards.value = [];
+    const inputCards = message.player_cards;
+    inputCards.forEach((card: any) => {
+      playercards.value.push({name: card + '.png'});
+    })
+    for (let i = 0; i < (countOfPlayer - 1) * 2; i++) {
+      playercards.value.push({name: 'back.png'})
+    }
+    dealPlayerCard();
   }
 
 })
