@@ -26,10 +26,10 @@ class PokerGame:
         self._is_game_started = False
 
         self._room_id = room_id
-        room = Room.objects.get(id=room_id)
-        self._max_players = room.max_players
-        self._starting_chips = room.starting_chips
-        self._min_bet = room.big_blind_value
+        self.room = Room.objects.get(id=room_id)
+        self._max_players = self.room.max_players
+        self._starting_chips = self.room.starting_chips
+        self._min_bet = self.room.big_blind_value
 
         self._bank = 0
         self._current_bet = 0
@@ -83,6 +83,10 @@ class PokerGame:
             time.sleep(1)
             self._countdown -= 1
 
+        self.room.is_game_started = True
+        self.room.save()
+
+        self._is_game_started = True
         self._game_turn = self._game_turn_gen()
         next(self._game_turn)
 
@@ -173,8 +177,12 @@ class PokerGame:
     def countdown(self):
         return self._countdown
 
-    def add_player(self, player_id, username):
-        self._players[player_id] = {'username': username, 'cards': [], 'folded': False, 'bet': 0}
+    @property
+    def starting_chips(self):
+        return self._starting_chips
+
+    def add_player(self, player_id, username, chips):
+        self._players[player_id] = {'username': username, 'cards': [], 'folded': False, 'bet': 0, 'chips': chips}
 
         if len(self._players) >= 2:
             self._start_countdown()

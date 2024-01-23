@@ -50,7 +50,7 @@ class PokerConsumer(WebsocketConsumer):
         self.game = PokerConsumer.games[self.room_id]
 
         if not self.game.check_player(self.user.id):
-            self.game.add_player(self.user.id, self.user.username)
+            self.game.add_player(self.user.id, self.user.username, self.game.starting_chips)
 
             room = Room.objects.get(id=self.room_id)
             room.n_players += 1
@@ -61,10 +61,12 @@ class PokerConsumer(WebsocketConsumer):
                 {
                     "type": "player.joined",
                     "player_id": self.user.id,
-                    "username": self.user.username
+                    "username": self.user.username,
+                    'chips': self.game.starting_chips
                 }
             )
 
+        self.send_players_data()
 
         if self.game.countdown:
             self.send_countdown(self.game.countdown)
@@ -92,6 +94,7 @@ class PokerConsumer(WebsocketConsumer):
 
         # TODO: room removal
 
+    # noinspection PyMethodOverriding
     def receive(self, text_data):
         event_json = json.loads(text_data)
         event_type = event_json['type']
@@ -103,17 +106,26 @@ class PokerConsumer(WebsocketConsumer):
             amount = event_json['amount']
             self.game.player_action(player_id, player_chips, action, amount)
 
-    def send_countdown(self, event):
+    def send_countdown(self, countdown):
         self.send(text_data=json.dumps({
             'type': 'countdown',
-            'countdown': event['countdown'],
+            'countdown': countdown,
+        }))
+
+    def send_players_data(self):
+        self.send(text_data=json.dumps({
+            'type': 'players_data',
+            'players': [
+                {'player_id': p_id, 'username': p['username'], 'chips': p['chips']}
+                for p_id, p in self.game.players.items]
         }))
 
     def player_joined(self, event):
         self.send(text_data=json.dumps({
             'type': 'player_joined',
             'player_id': event['player_id'],
-            'username': event['username']
+            'username': event['username'],
+            'chips': event['chips']
         }))
 
     def player_left(self, event):
