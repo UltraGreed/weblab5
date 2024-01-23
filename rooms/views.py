@@ -1,3 +1,5 @@
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from rest_framework import generics
 
 from rest_framework.permissions import IsAuthenticated
@@ -12,30 +14,16 @@ class RoomCreate(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save()
+        # noinspection PyArgumentList
+        async_to_sync(get_channel_layer().send)(
+            'poker-game-manager',
+            {
+                'type': 'create.game',
+                'room_id': str(serializer.data['id'])
+            }
+        )
 
 
-# class RoomJoin(generics.UpdateAPIView):
-#     queryset = Room.objects.all()
-#     serializer_class = RoomSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def update(self, request, *args, **kwargs):
-#         room = self.get_object()
-#         room.players.add(request.user)
-#         return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
-#
-#
-# class RoomLeave(generics.UpdateAPIView):
-#     queryset = Room.objects.all()
-#     serializer_class = RoomSerializer
-#     permission_classes = [IsAuthenticated]
-#
-#     def update(self, request, *args, **kwargs):
-#         room = self.get_object()
-#         room.players.remove(request.user)
-#         return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
-#
-#
 
 class RoomDetail(generics.RetrieveAPIView):
     queryset = Room.objects.all()

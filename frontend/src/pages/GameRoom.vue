@@ -279,39 +279,39 @@ interface Player {
 }
 
 const players = ref<Player[]>([
-  {
-    id: 1,
-    username: username.toString(),
-    chips: 1000,
-    isMove: false,
-    smallBlindStatus: false,
-    bigBlindStatus: false,
-    dealerStatus: true,
-    isWinner: false,
-    lastAction: ''
-  },
-  {
-    id: 2,
-    username: 'Vladik',
-    chips: 9999,
-    isMove: false,
-    smallBlindStatus: true,
-    bigBlindStatus: false,
-    dealerStatus: false,
-    isWinner: false,
-    lastAction: ''
-  },
-  {
-    id: 3,
-    username: 'Semen',
-    chips: 100,
-    isMove: false,
-    smallBlindStatus: false,
-    bigBlindStatus: true,
-    dealerStatus: false,
-    isWinner: false,
-    lastAction: ''
-  },
+  // {
+  //   id: 1,
+  //   username: username.toString(),
+  //   chips: 1000,
+  //   isMove: false,
+  //   smallBlindStatus: false,
+  //   bigBlindStatus: false,
+  //   dealerStatus: true,
+  //   isWinner: false,
+  //   lastAction: ''
+  // },
+  // {
+  //   id: 2,
+  //   username: 'Vladik',
+  //   chips: 9999,
+  //   isMove: false,
+  //   smallBlindStatus: true,
+  //   bigBlindStatus: false,
+  //   dealerStatus: false,
+  //   isWinner: false,
+  //   lastAction: ''
+  // },
+  // {
+  //   id: 3,
+  //   username: 'Semen',
+  //   chips: 100,
+  //   isMove: false,
+  //   smallBlindStatus: false,
+  //   bigBlindStatus: true,
+  //   dealerStatus: false,
+  //   isWinner: false,
+  //   lastAction: ''
+  // },
 ])
 const playerPositions = ([
   {
@@ -425,7 +425,7 @@ const checkBalance = () => {
 };
 
 const pot = ref(0)
-const countdown = ref(30);
+const countdown = ref(0);
 // -------------------------------------------------------------------------------------------- //
 
 const dealPlayerCard = () => {
