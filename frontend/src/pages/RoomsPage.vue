@@ -17,7 +17,7 @@
                    :label-color="'grey-1'"
           >
             <template v-slot:prepend>
-              <q-icon name="search" color="white" />
+              <q-icon name="search" color="white"/>
             </template>
           </q-input>
         </div>
@@ -79,7 +79,8 @@
                      color="white"
                      :input-style="{color: 'white'}"
                      outlined
-                     v-model="bigBlindValue"></q-input>
+                     v-model="bigBlindValue"
+            ></q-input>
             <q-input class="text-white q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
                      label="Starting chips"
@@ -190,6 +191,16 @@ watch(startingChips, (newValue) => {
 });
 
 const createRoom = () => {
+  if (startingChips.value > balance) {
+    $q.notify({
+      message: 'Not enough Altushkas to create the room',
+      color: 'red-10',
+      textColor: 'white',
+      position: 'top',
+      timeout: 2000,
+    });
+    return;
+  }
   authPost('/rooms/create/', {
     name: roomName.value,
     max_players: 7,
@@ -203,6 +214,7 @@ const createRoom = () => {
 
   addRoom.value = false;
 }
+
 const joinRoom = (id) => {
   authGet('/rooms/')
     .then(response => {

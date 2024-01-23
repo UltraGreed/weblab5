@@ -70,12 +70,12 @@
                 :style="`top: ${playerPositions[i].top}%; left: ${playerPositions[i].left}%`"
                 :class="{ 'border-white': player.isMove }"
         >
-        <span style="font-size: x-large; bottom: 23%; position:absolute;">
-          {{ player.username }}
-        </span>
-          <span style="font-size: x-large; bottom: 3%; position:absolute;">
-          {{ player.chips }}Å
-        </span>
+          <span style="font-size: x-large; bottom: 23%; position:absolute;">
+            {{ player.username }}
+          </span>
+            <span style="font-size: x-large; bottom: 3%; position:absolute;">
+            {{ player.chips }}Å
+          </span>
           <q-card class="transparent" v-if="player.isWinner"
                   style="z-index: 1; color: gold; max-width: 100px; font-size: x-large; bottom: -40%; position: absolute;">
             WINNER!
@@ -86,30 +86,46 @@
           color: white; border-top: 1px solid white;"
                 :style="`top: ${playerPositions[i].top + 24}%; left: ${playerPositions[i].left}%`"
         >
-          <span style="font-size: x-large; bottom: 3%; position:absolute;">
-            RAISE
+          <span style="font-size: x-large; bottom: 3%; position: absolute" v-if="player.lastAction === 'raise' || player.lastAction === 'bet'">
+            {{ player.lastAction }} + {{ chipsAction }}Å
+          </span>
+          <span style="font-size: x-large; bottom: 3%; position: absolute" v-else>
+            {{ player.lastAction }}
           </span>
         </q-card>
       </div>
     </div>
     <div class="row justify-center q-pa-md" style="position: absolute; bottom: -1%;">
-      <div class="button-container q-pb-lg">
-        <q-btn
-          style="font-size: 20px;
-          background-color: #960018;
-          color: #ffffff; width: 100px;
-          height: 50px;
-          box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
-          label="CHECK"
-          class="q-mr-md"/>
+      <div class="button-container q-pb-lg" v-if="(players.find((player) => player.isMove) || {id: 0}).id === ourId">
+        <q-btn v-if="!was_raised"
+               style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+               label="CHECK"
+               class="q-mr-md"
+               @click="processingActions('CHECK')"
+        />
+        <q-btn v-if="was_raised"
+               style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+               label="CALL"
+               class="q-mr-md"
+               @click="processingActions('CALL')"
+        />
         <q-btn
           style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
           label="FOLD"
           class="q-mr-md"
+          @click="processingActions('FOLD')"
         />
-        <q-btn style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
-         height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);" label="RAISE"
-               @click="show.isVisible = !show.isVisible; show.balance = players[0].chips;"/>
+        <q-btn v-if="was_raised"
+               style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+               label="RAISE"
+               @click="processingActions('RAISE'); show.isVisible = !show.isVisible; show.balance = players[players.findIndex((player) => player.isMove)].chips;"
+        />
+        <q-btn v-if="!was_raised"
+               style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+               label="BET"
+               class="q-mr-md"
+               @click="processingActions('BET'); show.isVisible = !show.isVisible; show.balance = players[players.findIndex((player) => player.isMove)].chips;"
+        />
       </div>
 
       <q-dialog v-model="show.isVisible">
@@ -124,7 +140,7 @@
               style="background-color: #960018;"
               toggle-color="grey-9"
               :options="[
-                  {label: 'min', value: 10},
+                  {label: 'min', value: currentAmount + bigBlindValue },
                   {label: '1/4', value: Math.floor(show.balance/4)},
                   {label: '1/2', value: Math.floor(show.balance/2)},
                   {label: '3/4', value: Math.floor(show.balance*(3/4))},
@@ -154,8 +170,7 @@
         </q-card>
       </q-dialog>
     </div>
-    <q-btn @click="dealPlayerCard" label="1231231">
-    </q-btn>
+    <q-btn @click="dealPlayerCard" label="1231231"></q-btn>
   </q-page>
 </template>
 
@@ -260,10 +275,44 @@ interface Player {
   bigBlindStatus: boolean,
   dealerStatus: boolean,
   isWinner: boolean,
-  isFolded: boolean
+  lastAction: string
 }
 
-const players = ref<Player[]>([])
+const players = ref<Player[]>([
+  {
+    id: 1,
+    username: username.toString(),
+    chips: 1000,
+    isMove: false,
+    smallBlindStatus: false,
+    bigBlindStatus: false,
+    dealerStatus: true,
+    isWinner: false,
+    lastAction: ''
+  },
+  {
+    id: 2,
+    username: 'Vladik',
+    chips: 9999,
+    isMove: false,
+    smallBlindStatus: true,
+    bigBlindStatus: false,
+    dealerStatus: false,
+    isWinner: false,
+    lastAction: ''
+  },
+  {
+    id: 3,
+    username: 'Semen',
+    chips: 100,
+    isMove: false,
+    smallBlindStatus: false,
+    bigBlindStatus: true,
+    dealerStatus: false,
+    isWinner: false,
+    lastAction: ''
+  },
+])
 const playerPositions = ([
   {
     top: 76,
@@ -294,19 +343,26 @@ const playerPositions = ([
     left: 77
   }
 ])
-let countOfPlayer = 0;
 
+let countOfPlayer = 0;
+const bigBlindValue = ref(0);
+const was_raised = ref(true);
+const currentAmount = ref(10);
 const url = window.location.href;
 const arr = url.split('/')
+const chipValue = ref<number>(0);
+const chipsAction = ref<number>(0);
+
 authGet(`/rooms/detail/${arr[arr.length - 2]}/`)
   .then(response => {
     countOfPlayer = response.data.n_players;
+    bigBlindValue.value = response.data.big_blind_value;
+    chipValue.value = currentAmount.value + bigBlindValue.value;
   })
 const socket = new WebSocket(`ws://localhost:8000/ws/room/${arr[arr.length - 2]}/?token=${LocalStorage.getItem('accessToken')}`)
 
 // -------------------------------------------------------------------------------------------- //
 const show = ref<{ isVisible: boolean, balance: number }>({isVisible: false, balance: 0});
-const chipValue = ref<number>(0);
 
 watch(chipValue, (newValue) => {
   if (newValue.toString() === '') {
@@ -318,12 +374,58 @@ watch(chipValue, (newValue) => {
   }
 });
 
+const processingActions = (action: string) => {
+  const currentPlayer = players.value.find(player => player.isMove);
+  if (!currentPlayer) {
+    console.error('Current player not found');
+    return;
+  }
+  const player_id = currentPlayer.id;
+
+  if (action === 'CHECK') {
+    socket.send(JSON.stringify({
+      type: 'player_action',
+      player_id: player_id,
+      action: 'check',
+      amount: 0
+    }));
+  } else if (action === 'RAISE') {
+    socket.send(JSON.stringify({
+      type: 'player_action',
+      player_id: player_id,
+      action: 'raise',
+      amount: chipValue.value
+    }));
+  } else if (action === 'FOLD') {
+    socket.send(JSON.stringify({
+      type: 'player_action',
+      player_id: player_id,
+      action: 'fold',
+      amount: 0
+    }));
+  } else if (action === 'BET') {
+    socket.send(JSON.stringify({
+      type: 'player_action',
+      player_id: player_id,
+      action: 'bet',
+      amount: chipValue.value
+    }));
+  } else if (action === 'CALL') {
+    socket.send(JSON.stringify({
+      type: 'player_action',
+      player_id: player_id,
+      action: 'call',
+      amount: currentAmount.value
+    }));
+  }
+};
+
 const checkBalance = () => {
-  return chipValue.value <= show.value.balance;
+  return chipValue.value <= show.value.balance && chipValue.value >= currentAmount.value + bigBlindValue.value;
 };
 
 const pot = ref(1000)
-const countdown = ref(0);
+const countdown = ref(30);
 // -------------------------------------------------------------------------------------------- //
 
 const dealPlayerCard = () => {
@@ -367,12 +469,11 @@ const dealCommonCards = () => {
 }
 
 let ourId = 0;
-  authGet('/users/me/')
-    .then(response => {
-      ourId = response.data.id;
-    })
+authGet('/users/me/')
+  .then(response => {
+    ourId = response.data.id;
+  })
 socket.addEventListener('message', (event) => {
-
   const eventData = JSON.parse(event.data);
 
   if (eventData.type === 'players_data') {
@@ -388,7 +489,7 @@ socket.addEventListener('message', (event) => {
         smallBlindStatus: false,
         dealerStatus: false,
         isWinner: false,
-        isFolded: false
+        lastAction: ''
       })
     })
 
@@ -449,7 +550,7 @@ socket.addEventListener('message', (event) => {
         smallBlindStatus: false,
         dealerStatus: false,
         isWinner: false,
-        isFolded: false
+        lastAction: ''
       })
     }
   }
@@ -467,6 +568,25 @@ socket.addEventListener('message', (event) => {
     players.value[(ind + 1) % 7].smallBlindStatus = true;
     players.value[(ind + 2) % 7].bigBlindStatus = true;
     players.value[(ind + 3) % 7].isMove = true;
+  }
+
+  if (eventData.type === 'action_confirmed') {
+    const targetPlayer = players.value.find(player => player.id === eventData.player_id);
+    if (targetPlayer) {
+      targetPlayer.lastAction = eventData.action;
+      targetPlayer.chips = eventData.chips_remaining
+      chipsAction.value = eventData.chips_action
+    }
+  }
+
+  if (eventData.type === 'awaiting_turn') {
+    const targetPlayer = players.value.find(player => player.id === eventData.player_id);
+    if (targetPlayer) {
+      targetPlayer.isMove = true;
+    }
+    was_raised.value = !!eventData.was_raised;
+    pot.value = eventData.bank;
+    currentAmount.value = eventData.current_bet;
   }
 
 })
@@ -502,6 +622,5 @@ const timer = setInterval(() => {
 .border-white
   border: 1px solid white
   box-shadow: 0 0 10px white
-
 
 </style>
