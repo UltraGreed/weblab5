@@ -9,7 +9,7 @@
           <span class="text-white text-h2 oswald-regular">ROOMS</span>
         </div>
         <div>
-          <q-input class="rounded-borders text-white" color="white"
+          <q-input class="rounded-borders text-white" color="white "
                    :input-style="{color: 'white'}"
                    style="min-width: 250px; font-size: x-large; border-bottom: 1px solid white; color: white"
                    v-model="searchInput"
@@ -17,7 +17,7 @@
                    :label-color="'grey-1'"
           >
             <template v-slot:prepend>
-              <q-icon name="search" color="white"/>
+              <q-icon name="search" color="white" />
             </template>
           </q-input>
         </div>

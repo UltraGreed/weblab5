@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center justify-center">
+  <q-page class="column items-center q-pt-xl" style="overflow: hidden;">
     <div class="table-container">
       <img
         v-for="(card, index) in playercards"
@@ -18,9 +18,14 @@
         alt=""
         draggable="false"
       />
-      <span style="position:absolute; left: 47%; top: 30%; font-size: x-large; color: white">
-        Pot: {{ pot }}Å
+      <span style="position:absolute; left: 46%; top: 30%;
+                   font-size: x-large; color: white;
+                   background-color: rgba(0,0,0,0.6);
+                   border-radius: 15px;
+                   padding: 0 50px 0 50px">
+        {{ pot }}
       </span>
+      <q-img src="/public/chips2.png" style="height: 45px; width: 45px; left: 35.5vw; top: 21.3vh" draggable="false"></q-img>
       <div v-for="(player,i) in players" :key="i">
         <div class="column items-center"
              style="position: absolute; z-index: 1"
@@ -72,7 +77,7 @@
       </div>
     </div>
     <div class="row justify-center q-pa-md" style="position: absolute; bottom: -1%;">
-      <div class="button-container">
+      <div class="button-container q-pb-lg">
         <q-btn
           style="font-size: 20px;
           background-color: #960018;
@@ -133,7 +138,6 @@
         </q-card>
       </q-dialog>
     </div>
-    <q-btn @click="dealPlayerCard">3123</q-btn>
   </q-page>
 </template>
 
