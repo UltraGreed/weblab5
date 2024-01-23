@@ -16,6 +16,9 @@
                    label="Search"
                    :label-color="'grey-1'"
           >
+            <template v-slot:prepend>
+              <q-icon name="search" color="white"/>
+            </template>
           </q-input>
         </div>
       </q-card-section>
@@ -238,5 +241,6 @@ body
   overflow: hidden
   height: 100%
   width: 100%
+
 
 </style>

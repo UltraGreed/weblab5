@@ -33,13 +33,13 @@
             <div>
               <p>Your number: +{{ currentNumber }}</p>
               <q-btn @click="lowerHalf" style="color:white;
-                     background-color: rgba(100, 0, 0, 0.9); margin-right: 10px" size="20px" >LESS</q-btn>
+                     background-color: #960018; margin-right: 10px" size="20px" >LESS</q-btn>
               <q-btn @click="upperHalf" style="color:white;
-                     background-color: rgba(100, 0, 0, 0.9)" size="20px">MORE</q-btn>
+                     background-color: #960018" size="20px">MORE</q-btn>
             </div>
           </q-card-section>
           <q-card-section>
-            <q-btn label="Submit" style="color:white; background-color: rgba(100, 0, 0, 0.9)" size="20px"></q-btn>
+            <q-btn label="Submit" style="color:white; background-color: #960018" size="20px"></q-btn>
           </q-card-section>
         </q-card>
       </q-dialog>

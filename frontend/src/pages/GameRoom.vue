@@ -82,11 +82,9 @@
           label="CHECK"
           class="q-mr-md"/>
         <q-btn
-          style="font-size: 20px;
-          background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
+          style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px; height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);"
           label="FOLD"
           class="q-mr-md"
-          @click="fold"
         />
         <q-btn style="font-size: 20px; background-color: #960018; color: #ffffff; width: 100px;
          height: 50px; box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);" label="RAISE"
@@ -118,7 +116,7 @@
                      label-color="white"
                      :input-style="{color: 'white', 'padding-left': '10px'}"
                      color="red-14"
-                     style="font-size: 20px; "
+                     style="font-size: 20px"
                      maxlength="14"
                      :rules="[val => (val <= show.balance) || 'The entered value is greater than your balance']"
             />
@@ -222,7 +220,8 @@ interface Player {
   small_blind_status: boolean,
   big_blind_status: boolean,
   dealer_status: boolean,
-  is_winner: boolean
+  is_winner: boolean,
+  isFolded: boolean
 }
 
 const players = ref<Player[]>([
@@ -234,7 +233,8 @@ const players = ref<Player[]>([
     big_blind_status: false,
     dealer_status: true,
     is_winner: false,
-    isMove: true
+    isMove: true,
+    isFolded: false
   },
   {
     id: 2,
@@ -244,7 +244,8 @@ const players = ref<Player[]>([
     small_blind_status: true,
     big_blind_status: false,
     dealer_status: false,
-    is_winner: false
+    is_winner: false,
+    isFolded: false
   },
   {
     id: 3,
@@ -254,7 +255,8 @@ const players = ref<Player[]>([
     small_blind_status: false,
     big_blind_status: true,
     dealer_status: false,
-    is_winner: false
+    is_winner: false,
+    isFolded: false
   },
   {
     id: 4,
@@ -264,7 +266,8 @@ const players = ref<Player[]>([
     small_blind_status: false,
     big_blind_status: false,
     dealer_status: false,
-    is_winner: true
+    is_winner: true,
+    isFolded: false
   },
   {
     id: 5,
@@ -274,7 +277,8 @@ const players = ref<Player[]>([
     small_blind_status: false,
     big_blind_status: false,
     dealer_status: false,
-    is_winner: false
+    is_winner: false,
+    isFolded: false
   },
   {
     id: 6,
@@ -284,7 +288,8 @@ const players = ref<Player[]>([
     small_blind_status: false,
     big_blind_status: false,
     dealer_status: false,
-    is_winner: false
+    is_winner: false,
+    isFolded: false
   },
   {
     id: 7,
@@ -294,7 +299,8 @@ const players = ref<Player[]>([
     small_blind_status: false,
     big_blind_status: false,
     dealer_status: false,
-    is_winner: false
+    is_winner: false,
+    isFolded: false
   }
 ])
 const playerPositions = ([
@@ -356,11 +362,33 @@ const checkBalance = () => {
 
 const pot = ref(1000)
 
-const playerFolded = ref(false);
+// const fold = (): void => {
+// };
 
-const fold = (): void => {
-  playerFolded.value = true;
-};
+// const animateFoldedPlayerCards = () => {
+//   const tl = gsap.timeline();
+//
+//   const currentPlayerIndex = 0;
+//
+//   playercards.value.forEach((card, index) => {
+//     const playerIndex = Math.floor((index) / 2);
+//
+//     if (playerIndex === currentPlayerIndex) {
+//       const positionGroup = playerCardPositions.value[playerIndex];
+//       tl.to(`.game-card:nth-child(${index + 1})`, {
+//         duration: 0.5,
+//         scale: 0.9,
+//         ease: 'power2.out',
+//       })
+//         .to(`.game-card:nth-child(${index + 1})`, {
+//           duration: 0.5,
+//           opacity: 0.6,
+//           ease: 'power2.out',
+//         }, '-=0.5');
+//     }
+//   });
+// };
+
 
 const dealPlayerCard = () => {
   const tl = gsap.timeline();
