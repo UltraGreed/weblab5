@@ -13,6 +13,9 @@
         <div class="row">
           <q-btn @click="profile = true" padding="sm" flat icon="account_circle" class="text-h5"></q-btn>
         </div>
+        <q-card-section>
+          <q-btn icon="logout" flat @click="logout" style="color:white" size="20px"></q-btn>
+        </q-card-section>
       </q-toolbar>
     </q-header>
     <q-page-container>
@@ -27,10 +30,16 @@
           </q-card-section>
           <q-card-section style="color: white" class="text-h4 column">
             <span>Enter your phone number</span>
-            <q-slider label v-model="telephone" :min="0" :max="100000000000" class="q-mt-sm"/>
+            <div>
+              <p>Your number: +{{ currentNumber }}</p>
+              <q-btn @click="lowerHalf" style="color:white;
+                     background-color: rgba(100, 0, 0, 0.9); margin-right: 10px" size="20px" >LESS</q-btn>
+              <q-btn @click="upperHalf" style="color:white;
+                     background-color: rgba(100, 0, 0, 0.9)" size="20px">MORE</q-btn>
+            </div>
           </q-card-section>
           <q-card-section>
-            <q-btn label="Submit" style="color:white" size="20px"></q-btn>
+            <q-btn label="Submit" style="color:white; background-color: rgba(100, 0, 0, 0.9)" size="20px"></q-btn>
           </q-card-section>
         </q-card>
       </q-dialog>
@@ -42,6 +51,8 @@
 <script setup lang='ts'>
 import {ref} from 'vue';
 import {authGet} from "src/utils";
+import {Router} from "src/router";
+import {LocalStorage} from "quasar";
 
 const balance = ref(0);
 const username = ref('')
@@ -52,8 +63,28 @@ authGet('/users/me/').then(response => {
 })
 
 
+const logout = () => {
+  LocalStorage.remove('accessToken');
+  Router.push('/');
+};
+
 const profile = ref(false);
-const telephone = ref('');
+
+let min = ref(0);
+let max = ref(99999999999);
+
+let currentNumber = ref((min.value + max.value) / 2);
+
+const lowerHalf = () => {
+  max.value = currentNumber.value;
+  currentNumber.value = Math.floor((min.value + max.value) / 2);
+};
+
+const upperHalf = () => {
+  min.value = currentNumber.value;
+  currentNumber.value = Math.ceil((min.value + max.value) / 2);
+};
+
 </script>
 
 <style lang="sass" scoped>

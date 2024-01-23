@@ -11,9 +11,11 @@
         <div>
           <q-input class="rounded-borders text-white" color="white"
                    :input-style="{color: 'white'}"
-                   style="min-width: 250px; font-size: x-large">
-            <q-btn flat icon="search" size="lg">
-            </q-btn>
+                   style="min-width: 250px; font-size: x-large; border-bottom: 1px solid white; color: white"
+                   v-model="searchInput"
+                   label="Search"
+                   :label-color="'grey-1'"
+          >
           </q-input>
         </div>
       </q-card-section>
@@ -27,7 +29,7 @@
           <span style="margin-left: -13px">PLAYERS</span>
         </q-item>
         <q-splitter horizontal class="bg-white q-mb-none"/>
-        <div v-for="room in paginatedRooms" :key="room">
+        <div v-for="room in paginatedAndFilteredRooms" :key="room">
           <q-item clickable v-ripple class="q-mt-sm" @click="joinRoom(room.id)">
             <span class="col-4">{{ room.name }}</span>
             <span class="col-2">{{ room.blind }}</span>
@@ -59,8 +61,8 @@
           <q-card-section class="text-white text-h3 q-mt-lg">ROOM SETTINGS</q-card-section>
           <q-card-section class="column q-pt-none justify-start" style="min-width: 300px">
             <q-input class="text-white q-mt-lg rounded-borders"
-                     style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
-                     label="name"
+                     style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large; "
+                     label="Name"
                      label-color="black"
                      color="white"
                      :input-style="{color: 'white'}"
@@ -69,7 +71,7 @@
             ></q-input>
             <q-input class="text-white  q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
-                     label="blind"
+                     label="Big blind"
                      label-color="black"
                      color="white"
                      :input-style="{color: 'white'}"
@@ -77,7 +79,7 @@
                      v-model="bigBlindValue"></q-input>
             <q-input class="text-white q-mt-sm rounded-borders"
                      style="background-color: rgba(120, 0, 0, 0.9); font-size: x-large"
-                     label="starting chips"
+                     label="Starting chips"
                      label-color="black"
                      color="white"
                      :input-style="{color: 'white'}"
@@ -101,11 +103,11 @@
 </template>
 
 <script setup>
-import {ref, computed, onMounted} from 'vue';
-import {LocalStorage} from "quasar";
-import {authGet, authPost} from "src/utils";
-import {Router} from "src/router";
-import {useQuasar} from "quasar";
+import {ref, computed, onMounted, watch} from 'vue';
+import {LocalStorage} from 'quasar';
+import {authGet, authPost} from 'src/utils';
+import {Router} from 'src/router';
+import {useQuasar} from 'quasar';
 
 let balance = 0;
 authGet('/users/me/').then(response => {
@@ -147,11 +149,16 @@ onMounted(async () => {
 const itemsPerPage = 7;
 const currentPage = ref(1);
 const maxPages = computed(() => Math.ceil(roomList.value.length / itemsPerPage));
-const paginatedRooms = computed(() => {
+
+const paginatedAndFilteredRooms = computed(() => {
+  const search = searchInput.value.toLowerCase();
+  const filteredList = roomList.value.filter(room => room.name.toLowerCase().includes(search));
   const startIndex = (currentPage.value - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  return roomList.value.slice(startIndex, endIndex);
+  return filteredList.slice(startIndex, endIndex);
 });
+
+
 const changePage = (page) => {
   currentPage.value = page;
 }
@@ -159,6 +166,25 @@ const changePage = (page) => {
 const roomName = ref('');
 const bigBlindValue = ref(0);
 const startingChips = ref(0);
+const searchInput = ref('');
+
+const handleNumericValue = (value, ref) => {
+  if (value.toString() === '') {
+    ref.value = 0;
+  } else if (value.toString() === '0') {
+    ref.value = 0;
+  } else {
+    ref.value = parseInt(value.toString(), 10);
+  }
+};
+
+watch(bigBlindValue, (newValue) => {
+  handleNumericValue(newValue, bigBlindValue);
+});
+
+watch(startingChips, (newValue) => {
+  handleNumericValue(newValue, startingChips);
+});
 
 const createRoom = () => {
   authPost('/rooms/create/', {
@@ -174,7 +200,6 @@ const createRoom = () => {
 
   addRoom.value = false;
 }
-
 const joinRoom = (id) => {
   authGet('/rooms/')
     .then(response => {
@@ -191,8 +216,7 @@ const joinRoom = (id) => {
               timeout: 1000,
             });
             return;
-          }
-          else if (!(balance >= tuple.starting_chips)) {
+          } else if (!(balance >= tuple.starting_chips)) {
             $q.notify({
               message: 'Not enough Altushkas',
               color: 'red-10',
@@ -210,5 +234,9 @@ const joinRoom = (id) => {
 </script>
 
 <style lang="sass" scoped>
+body
+  overflow: hidden
+  height: 100%
+  width: 100%
 
 </style>
