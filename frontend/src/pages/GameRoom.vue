@@ -476,6 +476,8 @@ authGet('/users/me/')
 socket.addEventListener('message', (event) => {
   const eventData = JSON.parse(event.data);
 
+  console.log(eventData)
+
   if (eventData.type === 'players_data') {
     players.value = [];
     const inputPlayers = eventData.players;

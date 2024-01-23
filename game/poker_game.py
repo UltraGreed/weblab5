@@ -2,6 +2,7 @@ import random
 import time
 
 from asgiref.sync import async_to_sync
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
 
 from rooms.models import Room
@@ -17,11 +18,13 @@ def generate_deck():
 default_deck = generate_deck()
 
 
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyUnresolvedReferences
 class PokerGame:
     timer = 10
 
-    def __init__(self, room_id, room_group_name):
+    @classmethod
+    async def create(cls, room_id, room_group_name):
+        self = cls()
         self._players = {}
         self._turn_player_id = 0
 
@@ -35,8 +38,7 @@ class PokerGame:
         self._room_id = room_id
         self._room_group_name = room_group_name
 
-        # noinspection PyUnresolvedReferences
-        self._room = Room.objects.get(id=room_id)
+        self._room = await database_sync_to_async(Room.objects.get)(id=room_id)
         self._max_players = self._room.max_players
         self._starting_chips = self._room.starting_chips
         self._min_bet = self._room.big_blind_value
@@ -55,10 +57,11 @@ class PokerGame:
 
         self._game_turn = iter([])
 
-    def player_connected(self, event):
+        return self
+
+    async def player_connected(self, event):
         user_id = event['user_id']
-        user = PokerUser.objects.get(pk=user_id)
-        print(event)
+        user = await database_sync_to_async(PokerUser.objects.get)(pk=user_id)
         consumer_channel = event['channel']
         verdict = {}
         if user_id in self._players.keys():
@@ -77,7 +80,7 @@ class PokerGame:
             verdict['is_qualified'] = True
             verdict['reason'] = 'ok'
 
-        async_to_sync(self.channel_layer.send)(
+        await self.channel_layer.send(
             consumer_channel,
             {
                 'type': 'player.connected.verdict',
@@ -94,7 +97,7 @@ class PokerGame:
                 'bet': 0
             }
 
-            async_to_sync(self.channel_layer.group_send)(
+            await self.channel_layer.group_send(
                 self._room_group_name,
                 {
                     "type": "player.joined",
@@ -105,18 +108,18 @@ class PokerGame:
             )
 
             self._room.n_players += 1
-            self._room.save()
+            await database_sync_to_async(self._room.save)()
 
             if len(self._players) >= 2 and not self._countdown and not self._is_game_started:
-                self._start_countdown()
+                await self._start_countdown()
 
-    def player_disconnected(self, event):
+    async def player_disconnected(self, event):
         # noinspection PyUnresolvedReferences
-        room = Room.objects.get(id=self._room_id)
+        room = await database_sync_to_async(Room.objects.get)(id=self._room_id)
         room.n_players -= 1
-        room.save()
+        await database_sync_to_async(room.save)()
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 "type": "player.left",
@@ -125,8 +128,8 @@ class PokerGame:
         )
         # TODO: room removal
 
-    def get_players_data(self, event):
-        async_to_sync(self.channel_layer.send)(
+    async def get_players_data(self, event):
+        await self.channel_layer.send(
             event['channel'],
             {
                 'type': 'send.players.data',
@@ -158,10 +161,10 @@ class PokerGame:
         self._drop_cards()
         # TODO: implement actual reset
 
-    def _start_countdown(self):
+    async def _start_countdown(self):
         self._countdown = PokerGame.timer
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'send.countdown',
@@ -177,14 +180,14 @@ class PokerGame:
 
         self._is_game_started = True
         self._game_turn = self._game_turn_gen()
-        next(self._game_turn)
+        await anext(self._game_turn)
 
-    def _game_turn_gen(self):
+    async def _game_turn_gen(self):
         dealer_id = random.choice(list(self._players.keys()))
         self._first_player_id = dealer_id
         self._raised_player_id = dealer_id
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'game.started',
@@ -193,7 +196,7 @@ class PokerGame:
 
         self._deal_cards(2)
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'cards.dealt',
@@ -203,13 +206,13 @@ class PokerGame:
         self._turn_player_id = dealer_id
         self._was_raised = False
 
-        self._send_next_turn()
+        await self._send_next_turn()
 
         yield
 
         self._deal_common_cards(3)
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'common.cards.dealt',
@@ -220,13 +223,13 @@ class PokerGame:
         self._turn_player_id = self._first_player_id
         self._was_raised = False
 
-        self._send_next_turn()
+        await self._send_next_turn()
 
         yield
 
         self._deal_common_cards(1)
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'common.cards.dealt',
@@ -237,33 +240,34 @@ class PokerGame:
         self._turn_player_id = self._first_player_id
         self._was_raised = False
 
-        self._send_next_turn()
+        await self._send_next_turn()
 
         yield
 
         self._deal_common_cards(1)
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'common.cards.dealt',
                 'players': self._players
-            })
+            }
+        )
 
         self._first_player_id = self._get_next_player(self._first_player_id)
         self._turn_player_id = self._first_player_id
         self._was_raised = False
 
-        self._send_next_turn()
+        await self._send_next_turn()
 
         yield
 
-        self._game_end()
+        await self._game_end()
 
-    def _game_end(self):
+    async def _game_end(self):
         winner_id = self._get_winner()
 
-        async_to_sync(self.channel_layer.group_send)(
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 "type": 'game.end',
@@ -275,8 +279,8 @@ class PokerGame:
         # TODO: implement wa-bank and high card split
         # TODO: restart game
 
-    def player_action(self, event):
-        user = PokerUser.objects.get(pk=event['user_id'])
+    async def player_action(self, event):
+        user = await database_sync_to_async(PokerUser.objects.get)(pk=event['user_id'])
         action = event['action']
         chips_action = event['chips_action']
 
@@ -319,21 +323,21 @@ class PokerGame:
         else:
             return 'Incorrect action'
 
-        self._send_action_confirmed(action, chips_action)
-        self._send_next_turn()
+        await self._send_action_confirmed(action, chips_action)
+        await self._send_next_turn()
         self._turn_player_id = self._get_next_player(self._turn_player_id)
 
         if self._turn_player_id == self._raised_player_id:
             if len(list(filter(lambda p: not p['folded'], self._players))) == 1:
-                self._game_end()
+                await self._game_end()
                 return
 
-            next(self._game_turn)
+            await anext(self._game_turn)
 
         # TODO: implement player action
 
-    def _send_action_confirmed(self, action, chips_action, chips_remaining):
-        async_to_sync(self.channel_layer.group_send)(
+    async def _send_action_confirmed(self, action, chips_action, chips_remaining):
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'action.confirmed',
@@ -344,8 +348,8 @@ class PokerGame:
             }
         )
 
-    def _send_next_turn(self):
-        async_to_sync(self.channel_layer.group_send)(
+    async def _send_next_turn(self):
+        await self.channel_layer.group_send(
             self._room_group_name,
             {
                 'type': 'awaiting.turn',
@@ -365,4 +369,3 @@ class PokerGame:
     def _get_winner(self):
         return 0
         # TODO: determine winner from combinations
-
