@@ -1,5 +1,5 @@
 <template>
-  <q-page class="column items-center" style="padding-top: 100px">
+  <q-page class="column items-center justify-center">
     <q-card flat
             style="min-width: 60%; min-height: 670px;background-color: rgba(0, 0, 0, 0.4);"
             class="q-pa-xl"

@@ -153,6 +153,8 @@
         </q-card>
       </q-dialog>
     </div>
+    <q-btn @click="dealPlayerCard" label="1231231">
+    </q-btn>
   </q-page>
 </template>
 
@@ -395,35 +397,6 @@ const checkBalance = () => {
 };
 
 const pot = ref(1000)
-
-// const fold = (): void => {
-// };
-
-// const animateFoldedPlayerCards = () => {
-//   const tl = gsap.timeline();
-//
-//   const currentPlayerIndex = 0;
-//
-//   playercards.value.forEach((card, index) => {
-//     const playerIndex = Math.floor((index) / 2);
-//
-//     if (playerIndex === currentPlayerIndex) {
-//       const positionGroup = playerCardPositions.value[playerIndex];
-//       tl.to(`.game-card:nth-child(${index + 1})`, {
-//         duration: 0.5,
-//         scale: 0.9,
-//         ease: 'power2.out',
-//       })
-//         .to(`.game-card:nth-child(${index + 1})`, {
-//           duration: 0.5,
-//           opacity: 0.6,
-//           ease: 'power2.out',
-//         }, '-=0.5');
-//     }
-//   });
-// };
-
-
 const countdown = ref(30);
 // -------------------------------------------------------------------------------------------- //
 
@@ -483,7 +456,8 @@ socket.addEventListener('message', (event) => {
         big_blind_status: false,
         small_blind_status: false,
         dealer_status: false,
-        is_winner: false
+        is_winner: false,
+        isFolded: false
       })
     })
   }
